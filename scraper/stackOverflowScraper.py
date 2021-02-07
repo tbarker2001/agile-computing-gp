@@ -23,10 +23,8 @@ class StackOverflowPost:
         return self._title
 
 
-def getStackOverflowPosts(url, max_num_pages):
-    page_num = 0
-
-    while page_num < max_num_pages:
+def getStackOverflowPosts(url):
+    while True:
         html = urlopen(url).read().decode("utf-8")
         soup = BeautifulSoup(html, "html.parser")
 
@@ -42,14 +40,10 @@ def getStackOverflowPosts(url, max_num_pages):
             break
         else:
             url = "https://stackoverflow.com" + next_page["href"]
-            page_num += 1
-        print("next_page")
 
 
-def getStackOverflowTags(url, max_num_pages):
-    page_num = 0
-
-    while page_num < max_num_pages:
+def getStackOverflowTags(url):
+    while True:
         page = urlopen(url)
         html = page.read().decode("utf-8")
         soup = BeautifulSoup(html, "html.parser")
@@ -63,14 +57,20 @@ def getStackOverflowTags(url, max_num_pages):
             break
         else:
             url = "https://stackoverflow.com" + next_page["href"]
-            page_num += 1
 
 
 if __name__ == "__main__":
-    for post in getStackOverflowPosts("https://stackoverflow.com/questions?tab=Votes",2):
+
+    posts = getStackOverflowPosts("https://stackoverflow.com/questions?tab=Votes")
+
+    # note we shouldnt really put the posts straight into a list but instead generate them only as needed
+    bounded_posts = [posts.__next__() for _ in range(5)]
+    for post in bounded_posts:
         print(post)
 
     # todo error catching for incorrect website links and testing
     tag_page_url = "https://stackoverflow.com/tags"
-    for tag in getStackOverflowTags(tag_page_url,2):
-        print(tag)
+    tags = getStackOverflowTags(tag_page_url)
+    bounded_tags = [tags.__next__() for _ in range(5)]
+    for t in bounded_tags:
+        print(t)
