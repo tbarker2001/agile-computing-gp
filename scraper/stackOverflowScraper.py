@@ -12,9 +12,9 @@ class StackOverflowPost:
         self._post_tags = [tag.text for tag in soup.findAll("a", "post-tag")]
         self._title = soup.find(id="question-header").find("a", "question-hyperlink").string
 
-        self._post = " ".join([line.text for line in soup.find("div", "s-prose js-post-body").findAll("p")])
+        self._post = " ".join([line.text.replace('\n', ' ') for line in soup.find("div", "s-prose js-post-body").findAll("p")])
 
-        self._answers = [" ".join([line.text for line in answer.findAll("p")]) for answer in
+        self._answers = [" ".join([line.text.replace('\n', ' ') for line in answer.findAll("p")]) for answer in
                          soup.findAll("div", "answer")]
 
         # todo add any additional and convert into a format wanted by fasttext
@@ -64,9 +64,15 @@ if __name__ == "__main__":
     posts = getStackOverflowPosts("https://stackoverflow.com/questions?tab=Votes")
 
     # note we shouldnt really put the posts straight into a list but instead generate them only as needed
-    bounded_posts = [posts.__next__() for _ in range(5)]
-    for post in bounded_posts:
-        print(post)
+    bounded_posts = [posts.__next__() for _ in range(100)]
+    # write data out to file in format required by fastText
+    with open('../models/fastText_demo_model/stackoverflowdata.txt', 'w+') as fout:
+        for post in bounded_posts:
+            unique_tags = set(post._post_tags)
+            labels_prefix = ''
+            for tag in unique_tags:
+                labels_prefix += ('__label__' + tag + ' ')
+            fout.write(labels_prefix + post._post + " " + " ".join(post._answers) + '\n')
 
     # todo error catching for incorrect website links and testing
     tag_page_url = "https://stackoverflow.com/tags"
