@@ -12,13 +12,15 @@ class StackOverflowPost:
         self._post_tags = [tag.text for tag in soup.find(class_="post-taglist").findAll(class_="post-tag")]
         self._title = soup.find(id="question-header").find(class_="question-hyperlink").string
 
-        post_lines = [line.text for line in soup.find(class_="s-prose js-post-body").findAll("p")]
-        self._post = " ".join(post_lines)
+        post_lines = []
+        for line in soup.find(class_="s-prose js-post-body").findAll("p"):
+            if line.div is not None:
+                line.div.extract()
+            post_lines.append(line.text.replace('\n', ' ').replace('\r', ''))
 
-        self._answers = []
-        for answer in soup.findAll(class_="answer"):
-            answer_lines = [line.text for line in answer.findAll("p")]
-            self._answers.append(" ".join(answer_lines))
+        self._post = self.cleanLines(soup.find(class_="s-prose js-post-body").findAll("p"))
+
+        self._answers = [self.cleanLines(answer.findAll("p")) for answer in soup.findAll(class_="answer")]
 
         # todo more comprehensive cleanup of freetext
 
@@ -33,6 +35,15 @@ class StackOverflowPost:
 
     def getAnswers(self):
         return self._answers
+
+    def cleanLines(self, lines):
+        cleaned_lines = []
+        for line in lines:
+            if line.div is not None:
+                line.div.extract()
+            cleaned_lines.append(line.text.replace('\n', ' ').replace('\r', ''))
+        joined_lines = " ".join(cleaned_lines)
+        return joined_lines
 
     def __str__(self):
         return self._title
@@ -77,13 +88,8 @@ def getStackOverflowTags(url):
 if __name__ == "__main__":
     post_url = "https://stackoverflow.com/questions?tab=Votes"
     posts = getStackOverflowPosts(post_url)
-    for i in range(5):
+    for _ in range(5):
         print(posts.__next__())
-    # note we shouldnt really put the posts straight into a list but instead generate them only as needed
-    # bounded_posts = [posts.__next__() for _ in range(5)]
-    # for post in bounded_posts:
-    # print(post)
-
     # todo error catching for incorrect website links and testing
     tag_page_url = "https://stackoverflow.com/tags"
     tags = getStackOverflowTags(tag_page_url)
