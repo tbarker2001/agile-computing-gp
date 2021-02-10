@@ -21,6 +21,6 @@ I recommend using Visual Studio Code to develop the site, and its built-in termi
 
 If you want to interact with the database server through the command line (e.g. manually adding entries, altering schema, listing data), you can open a new terminal and simply use the command **mongo** to load a shell through which you can send commands.
 
-# Todo
+## Todo
 - Finish porting existing database code to use mongoose (which let's us more easily embed database documents within one another)
 - Work out a proper document-based schema now that we're using mongodb
