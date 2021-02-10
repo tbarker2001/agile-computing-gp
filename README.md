@@ -15,7 +15,7 @@ I recommend using Visual Studio Code to develop the site, and its built-in termi
 
 2. **npm install** to install site dependencies such as express, etc.
 
-3. **npm start** to start the nodejs web server. This will probably be hosted at localhost:3000.
+3. **npm start** to start the nodejs web server. This will probably be hosted at localhost:3000. You can go to localhost:3000/taskslist to view the main page.
 
 4. In a seperate terminal pointing at the same folder, **mongodb --dbpath "./data"** to launch the mongodb database server.
 
