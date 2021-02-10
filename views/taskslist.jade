@@ -1,0 +1,26 @@
+extends layout
+
+block content
+    h3 Tasks 
+    ul 
+        each task, i in taskslist
+            li#task_list_item
+                a(href="#") #{task.title}
+                p #{task.description}
+                p Creation date: #{task.creation_date}
+                p Assigned users: #{task.assigned_user_ids}
+    br
+    br
+    h3 Create Task
+    // Makes post request to /addtask on submission. Inputs are included in request body.
+    // Request handled in routes/index.js.
+    form#form_add_task(name="addtask", method="post", action="/addtask")
+        span Title 
+        span &nbsp;
+        input#input_title(type="text", placeholder="title", name="title")
+        br
+        br
+        span Description
+        span &nbsp;
+        input#input_description(type="text", placeholder="description", name="description")
+        button#submit_task(type="submit") submit
