@@ -11,13 +11,7 @@ class StackOverflowPost:
 
         self._post_tags = [tag.text for tag in soup.find(class_="post-taglist").findAll(class_="post-tag")]
         self._title = soup.find(id="question-header").find(class_="question-hyperlink").string
-
-        post_lines = []
-        for line in soup.find(class_="s-prose js-post-body").findAll("p"):
-            if line.div is not None:
-                line.div.extract()
-            post_lines.append(line.text.replace('\n', ' ').replace('\r', ''))
-
+ 
         self._post = self.cleanLines(soup.find(class_="s-prose js-post-body").findAll("p"))
 
         self._answers = [self.cleanLines(answer.findAll("p")) for answer in soup.findAll(class_="answer")]
@@ -86,13 +80,24 @@ def getStackOverflowTags(url):
 
 
 if __name__ == "__main__":
+
     post_url = "https://stackoverflow.com/questions?tab=Votes"
     posts = getStackOverflowPosts(post_url)
-    for _ in range(5):
-        print(posts.__next__())
+
+    # write data out to file in format required by fastText
+    with open('../models/fastText_demo_model/stackoverflowdata.txt', 'w+') as fout:
+        for _ in range(10):
+            post = posts.__next__()
+            unique_tags = set(post._post_tags)
+            labels_prefix = ''
+            for tag in unique_tags:
+                labels_prefix += ('__label__' + tag + ' ')
+            fout.write(labels_prefix + post._post + " " + " ".join(post._answers) + '\n')
+
     # todo error catching for incorrect website links and testing
     tag_page_url = "https://stackoverflow.com/tags"
     tags = getStackOverflowTags(tag_page_url)
     bounded_tags = [tags.__next__() for _ in range(5)]
     for t in bounded_tags:
         print(t)
+
