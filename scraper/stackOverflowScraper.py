@@ -9,15 +9,35 @@ class StackOverflowPost:
         html = urlopen(url).read().decode("utf-8")
         soup = BeautifulSoup(html, "html.parser")
 
-        self._post_tags = [tag.text for tag in soup.findAll("a", "post-tag")]
-        self._title = soup.find(id="question-header").find("a", "question-hyperlink").string
+        self._post_tags = [tag.text for tag in soup.find(class_="post-taglist").findAll(class_="post-tag")]
+        self._title = soup.find(id="question-header").find(class_="question-hyperlink").string
+ 
+        self._post = self.cleanLines(soup.find(class_="s-prose js-post-body").findAll("p"))
 
-        self._post = " ".join([line.text.replace('\n', ' ') for line in soup.find("div", "s-prose js-post-body").findAll("p")])
+        self._answers = [self.cleanLines(answer.findAll("p")) for answer in soup.findAll(class_="answer")]
 
-        self._answers = [" ".join([line.text.replace('\n', ' ') for line in answer.findAll("p")]) for answer in
-                         soup.findAll("div", "answer")]
+        # todo more comprehensive cleanup of freetext
 
-        # todo add any additional and convert into a format wanted by fasttext
+    def getPostTags(self):
+        return self._post_tags
+
+    def getTitle(self):
+        return self._title
+
+    def getPost(self):
+        return self._post
+
+    def getAnswers(self):
+        return self._answers
+
+    def cleanLines(self, lines):
+        cleaned_lines = []
+        for line in lines:
+            if line.div is not None:
+                line.div.extract()
+            cleaned_lines.append(line.text.replace('\n', ' ').replace('\r', ''))
+        joined_lines = " ".join(cleaned_lines)
+        return joined_lines
 
     def __str__(self):
         return self._title
@@ -28,14 +48,14 @@ def getStackOverflowPosts(url):
         html = urlopen(url).read().decode("utf-8")
         soup = BeautifulSoup(html, "html.parser")
 
-        links = ["https://stackoverflow.com" + question["href"] for question in
-                 soup.find(id="questions").find_all(class_="question-hyperlink")]
+        links_html = soup.find(id="questions").find_all(class_="question-hyperlink")
+        links = ["https://stackoverflow.com" + question["href"] for question in links_html]
 
         for link in links:
             yield StackOverflowPost(link)
 
         # check if another page exists then updates url if so
-        next_page = soup.find("a", "s-pagination--item js-pagination-item", rel="next")
+        next_page = soup.find(class_="s-pagination--item js-pagination-item", rel="next")
         if next_page is None:
             break
         else:
@@ -48,11 +68,11 @@ def getStackOverflowTags(url):
         html = page.read().decode("utf-8")
         soup = BeautifulSoup(html, "html.parser")
 
-        for tag in soup.findAll("a", "post-tag"):
+        for tag in soup.findAll(class_="post-tag"):
             yield tag.string
 
         # check if another page exists then updates url if so
-        next_page = soup.find("a", "s-pagination--item js-pagination-item", rel="next")
+        next_page = soup.find("a", class_="s-pagination--item js-pagination-item", rel="next")
         if next_page is None:
             break
         else:
@@ -61,13 +81,13 @@ def getStackOverflowTags(url):
 
 if __name__ == "__main__":
 
-    posts = getStackOverflowPosts("https://stackoverflow.com/questions?tab=Votes")
+    post_url = "https://stackoverflow.com/questions?tab=Votes"
+    posts = getStackOverflowPosts(post_url)
 
-    # note we shouldnt really put the posts straight into a list but instead generate them only as needed
-    bounded_posts = [posts.__next__() for _ in range(100)]
     # write data out to file in format required by fastText
     with open('../models/fastText_demo_model/stackoverflowdata.txt', 'w+') as fout:
-        for post in bounded_posts:
+        for _ in range(10):
+            post = posts.__next__()
             unique_tags = set(post._post_tags)
             labels_prefix = ''
             for tag in unique_tags:
@@ -80,3 +100,4 @@ if __name__ == "__main__":
     bounded_tags = [tags.__next__() for _ in range(5)]
     for t in bounded_tags:
         print(t)
+
