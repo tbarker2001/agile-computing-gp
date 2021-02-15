@@ -2,6 +2,13 @@ from bs4 import BeautifulSoup
 from urllib.request import urlopen
 import multiprocessing as mp
 
+class StackOverflowProfile:
+    def __init__(self,url):
+        html = urlopen(url).read().decode("utf-8")
+        soup = BeautifulSoup(html,"html.parser")
+
+
+
 
 class StackOverflowPost:
 
