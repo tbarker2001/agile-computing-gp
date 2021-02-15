@@ -1,6 +1,7 @@
 from urllib.request import urlopen
 
 from bs4 import BeautifulSoup
+import stackOverflowScraper as sovscraper
 
 
 class GithubIssue:
@@ -8,12 +9,16 @@ class GithubIssue:
     def __init__(self, url):
         html = urlopen(url).read().decode("utf-8")
         soup = BeautifulSoup(html, "html.parser")
-        print(soup)
 
-        title = soup.find(class_="js-issue-title").text
+        self._title = soup.find(class_="js-issue-title").text
 
-        #post = soup.select("td.d-block.comment-body.markdown-body.js-comment-body")
-        #print(post)
+        self._post = sovscraper.cleanLines(soup.find(class_="edit-comment-hide").findAll("p"))
+
+    def __str__(self):
+        return self._title
+
+    def getPost(self):
+        return self._post
 
 
 def main():
