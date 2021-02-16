@@ -3,6 +3,42 @@ from urllib.request import urlopen
 import multiprocessing as mp
 
 
+class StackOverflowProfile:
+    def __init__(self, url):
+        self._username = url[url.rfind("/") + 1:]
+
+        top_tag_url = url + "?tab=tags"
+        self._top_tags = getStackOverflowTags(top_tag_url)
+
+        answered_post_url = url + "?tab=answers"
+        self._answered_posts = getStackOverflowPosts(answered_post_url, "u-answer")
+
+        asked_post_url = url + "?tab=questions"
+        self._asked_posts = getStackOverflowPosts(asked_post_url, "u-question")
+
+    def __str__(self):
+        return self._username
+
+    def getTopTags(self):
+        return self._top_tags
+
+    def getAnsweredPosts(self):
+        return self._answered_posts
+
+    def getAskedPosts(self):
+        return self._asked_posts
+
+
+def cleanLines(lines):
+    cleaned_lines = []
+    for line in lines:
+        if line.div is not None:
+            line.div.extract()
+        cleaned_lines.append(line.text.replace('\n', ' ').replace('\r', ''))
+    joined_lines = " ".join(cleaned_lines)
+    return joined_lines
+
+
 class StackOverflowPost:
 
     def __init__(self, url):
@@ -11,10 +47,10 @@ class StackOverflowPost:
 
         self._post_tags = [tag.text for tag in soup.find(class_="post-taglist").findAll(class_="post-tag")]
         self._title = soup.find(id="question-header").find(class_="question-hyperlink").string
- 
-        self._post = self.cleanLines(soup.find(class_="s-prose js-post-body").findAll("p"))
 
-        self._answers = [self.cleanLines(answer.findAll("p")) for answer in soup.findAll(class_="answer")]
+        self._post = cleanLines(soup.find(class_="s-prose js-post-body").findAll("p"))
+
+        self._answers = [cleanLines(answer.findAll("p")) for answer in soup.findAll(class_="answer")]
 
         # todo more comprehensive cleanup of freetext
 
@@ -30,25 +66,23 @@ class StackOverflowPost:
     def getAnswers(self):
         return self._answers
 
-    def cleanLines(self, lines):
-        cleaned_lines = []
-        for line in lines:
-            if line.div is not None:
-                line.div.extract()
-            cleaned_lines.append(line.text.replace('\n', ' ').replace('\r', ''))
-        joined_lines = " ".join(cleaned_lines)
-        return joined_lines
-
     def __str__(self):
         return self._title
 
 
-def getStackOverflowPosts(url):
+def getStackOverflowPosts(url, mode):
     while True:
         html = urlopen(url).read().decode("utf-8")
         soup = BeautifulSoup(html, "html.parser")
+        if mode == "general":
+            links_html = soup.find(id="questions").find_all(class_="question-hyperlink")
+        elif mode == "u-question":
+            links_html = soup.find(id="user-tab-questions").find_all(class_="question-hyperlink")
+        elif mode == "u-answer":
+            links_html = soup.find(id="user-tab-answers").find_all(class_="answer-hyperlink")
+        else:
+            return
 
-        links_html = soup.find(id="questions").find_all(class_="question-hyperlink")
         links = ["https://stackoverflow.com" + question["href"] for question in links_html]
 
         for link in links:
@@ -81,8 +115,9 @@ def getStackOverflowTags(url):
 
 if __name__ == "__main__":
 
+    print(StackOverflowProfile("https://stackoverflow.com/users/87234/gmannickg"))
     post_url = "https://stackoverflow.com/questions?tab=Votes"
-    posts = getStackOverflowPosts(post_url)
+    posts = getStackOverflowPosts(post_url, "general")
 
     # write data out to file in format required by fastText
     with open('../models/fastText_demo_model/stackoverflowdata.txt', 'w+') as fout:
@@ -100,4 +135,3 @@ if __name__ == "__main__":
     bounded_tags = [tags.__next__() for _ in range(5)]
     for t in bounded_tags:
         print(t)
-
