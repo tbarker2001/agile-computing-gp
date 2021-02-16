@@ -33,12 +33,41 @@ let runPython = (scriptName, args) => new Promise((success, reject) => {
   })
 })
 
-router.get('/', (req, res, next) =>
+router.get('/predict', (req, res, next) =>
   runPython('predict.py', {
     "text": "When we push commits on to a new branch the git history is always broken",
     "num_labels": 4,
     "min_probability": 0.05
   })
+  .then((data) => {
+    console.log("Sending:", JSON.stringify(data));
+    res.send(JSON.stringify(data))
+  })
+  .catch(console.error)
+)
+
+
+router.get('/match', (req, res, next) =>
+  Promise.all([
+    runPython('predict.py', {
+      "text": "When we push commits on to a new branch the git history is always broken",
+      "num_labels": 4,
+      "min_probability": 0.01
+    }),
+    runPython('predict.py', {
+      "text": "I haven't been able to figure out why my interpreter does this, JavaScript is so weird, let me branch off",
+      "num_labels": 4,
+      "min_probability": 0.01
+    })
+  ])
+  .then((results) => runPython('match.py', {
+    "account_set": {
+      "account1": results[0]
+    },
+    "task_set": {
+      "task1": results[1]
+    }
+  }))
   .then((data) => {
     console.log("Sending:", JSON.stringify(data));
     res.send(JSON.stringify(data))
