@@ -1,6 +1,15 @@
+import enum
+
 from bs4 import BeautifulSoup
 from urllib.request import urlopen
 import multiprocessing as mp
+from enum import Enum
+
+
+class PostMode(Enum):
+    GENERAL = 1
+    ANSWER = 2
+    QUESTION = 3
 
 
 class StackOverflowProfile:
@@ -11,10 +20,10 @@ class StackOverflowProfile:
         self._top_tags = getStackOverflowTags(top_tag_url)
 
         answered_post_url = url + "?tab=answers"
-        self._answered_posts = getStackOverflowPosts(answered_post_url, "u-answer")
+        self._answered_posts = getStackOverflowPosts(answered_post_url, PostMode.ANSWER)
 
         asked_post_url = url + "?tab=questions"
-        self._asked_posts = getStackOverflowPosts(asked_post_url, "u-question")
+        self._asked_posts = getStackOverflowPosts(asked_post_url, PostMode.QUESTION)
 
     def __str__(self):
         return self._username
@@ -74,11 +83,11 @@ def getStackOverflowPosts(url, mode):
     while True:
         html = urlopen(url).read().decode("utf-8")
         soup = BeautifulSoup(html, "html.parser")
-        if mode == "general":
+        if mode == PostMode.GENERAL:
             links_html = soup.find(id="questions").find_all(class_="question-hyperlink")
-        elif mode == "u-question":
+        elif mode == PostMode.QUESTION:
             links_html = soup.find(id="user-tab-questions").find_all(class_="question-hyperlink")
-        elif mode == "u-answer":
+        elif mode == PostMode.ANSWER:
             links_html = soup.find(id="user-tab-answers").find_all(class_="answer-hyperlink")
         else:
             return
