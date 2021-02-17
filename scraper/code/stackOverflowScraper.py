@@ -1,5 +1,3 @@
-import enum
-
 from bs4 import BeautifulSoup
 from urllib.request import urlopen
 import multiprocessing as mp
@@ -54,14 +52,12 @@ class StackOverflowPost:
         html = urlopen(url).read().decode("utf-8")
         soup = BeautifulSoup(html, "html.parser")
 
-        self._post_tags = [tag.text for tag in soup.find(class_="post-taglist").findAll(class_="post-tag")]
+        self._post_tags = {tag.text for tag in soup.find(class_="post-taglist").findAll(class_="post-tag")}
         self._title = soup.find(id="question-header").find(class_="question-hyperlink").string
 
         self._post = cleanLines(soup.find(class_="s-prose js-post-body").findAll("p"))
 
         self._answers = [cleanLines(answer.findAll("p")) for answer in soup.findAll(class_="answer")]
-
-        # todo more comprehensive cleanup of freetext
 
     def getPostTags(self):
         return self._post_tags
@@ -122,25 +118,28 @@ def getStackOverflowTags(url):
             url = "https://stackoverflow.com" + next_page["href"]
 
 
-if __name__ == "__main__":
+def main():
+    filepath = '../models/fastText_demo_model/stackoverflowdata.txt'
+    writePostsToFile(3, filepath)
 
-    print(StackOverflowProfile("https://stackoverflow.com/users/87234/gmannickg"))
+
+def writePostsToFile(n, filepath):
+    """
+    Writes the most popular n posts to a file
+    """
     post_url = "https://stackoverflow.com/questions?tab=Votes"
-    posts = getStackOverflowPosts(post_url, "general")
+    posts = getStackOverflowPosts(post_url, PostMode.GENERAL)
 
-    # write data out to file in format required by fastText
-    with open('../models/fastText_demo_model/stackoverflowdata.txt', 'w+') as fout:
-        for _ in range(10):
+    with open(filepath, 'w+') as fout:
+        for _ in range(n):
             post = posts.__next__()
-            unique_tags = set(post._post_tags)
-            labels_prefix = ''
-            for tag in unique_tags:
-                labels_prefix += ('__label__' + tag + ' ')
-            fout.write(labels_prefix + post._post + " " + " ".join(post._answers) + '\n')
+            unique_tags = post.getPostTags()
+            labels_prefix = "__label__ " + " __label__ ".join(unique_tags)
+            line = "{labels} {post} {answers}\n".format(labels=labels_prefix, post=post.getPost(),
+                                                        answers=" ".join(post.getAnswers()))
+            print(post.getAnswers()[0]+ "\n")
+            fout.write(line)
 
-    # todo error catching for incorrect website links and testing
-    tag_page_url = "https://stackoverflow.com/tags"
-    tags = getStackOverflowTags(tag_page_url)
-    bounded_tags = [tags.__next__() for _ in range(5)]
-    for t in bounded_tags:
-        print(t)
+
+if __name__ == "__main__":
+    main()
