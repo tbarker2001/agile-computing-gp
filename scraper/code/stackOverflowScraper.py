@@ -1,3 +1,5 @@
+import time
+
 from bs4 import BeautifulSoup
 from urllib.request import urlopen
 import multiprocessing as mp
@@ -50,7 +52,7 @@ class StackOverflowPost:
 
     def __init__(self, url):
         html = urlopen(url).read().decode("utf-8")
-        soup = BeautifulSoup(html, "html.parser")
+        soup = BeautifulSoup(html, "lxml")
 
         self._post_tags = {tag.text for tag in soup.find(class_="post-taglist").findAll(class_="post-tag")}
         self._title = soup.find(id="question-header").find(class_="question-hyperlink").string
@@ -78,7 +80,7 @@ class StackOverflowPost:
 def getStackOverflowPosts(url, mode):
     while True:
         html = urlopen(url).read().decode("utf-8")
-        soup = BeautifulSoup(html, "html.parser")
+        soup = BeautifulSoup(html, "lxml")
         if mode == PostMode.GENERAL:
             links_html = soup.find(id="questions").find_all(class_="question-hyperlink")
         elif mode == PostMode.QUESTION:
@@ -119,8 +121,11 @@ def getStackOverflowTags(url):
 
 
 def main():
-    filepath = '../models/fastText_demo_model/stackoverflowdata.txt'
-    writePostsToFile(3, filepath)
+    filepath = '../../models/fastText_demo_model/stackoverflowdata.txt'
+    start_time = time.time()
+    writePostsToFile(100, filepath)
+    end_time = time.time()
+    print(end_time-start_time)
 
 
 def writePostsToFile(n, filepath):
@@ -130,14 +135,13 @@ def writePostsToFile(n, filepath):
     post_url = "https://stackoverflow.com/questions?tab=Votes"
     posts = getStackOverflowPosts(post_url, PostMode.GENERAL)
 
-    with open(filepath, 'w+') as fout:
+    with open(filepath, 'w+',encoding= "utf-8") as fout:
         for _ in range(n):
             post = posts.__next__()
             unique_tags = post.getPostTags()
             labels_prefix = "__label__ " + " __label__ ".join(unique_tags)
             line = "{labels} {post} {answers}\n".format(labels=labels_prefix, post=post.getPost(),
                                                         answers=" ".join(post.getAnswers()))
-            print(post.getAnswers()[0]+ "\n")
             fout.write(line)
 
 
