@@ -2,7 +2,7 @@ import time
 
 from bs4 import BeautifulSoup
 from urllib.request import urlopen
-import multiprocessing as mp
+import requests
 from enum import Enum
 
 
@@ -50,8 +50,11 @@ def cleanLines(lines):
 
 class StackOverflowPost:
 
-    def __init__(self, url):
-        html = urlopen(url).read().decode("utf-8")
+    def __init__(self, url, session=None):
+        if session is None:
+            html = urlopen(url).read()
+        else:
+            html = session.get(url).text
         soup = BeautifulSoup(html, "lxml")
 
         self._post_tags = {tag.text for tag in soup.find(class_="post-taglist").findAll(class_="post-tag")}
@@ -78,9 +81,10 @@ class StackOverflowPost:
 
 
 def getStackOverflowPosts(url, mode):
+    requests_session = requests.session()
     while True:
-        html = urlopen(url).read().decode("utf-8")
-        soup = BeautifulSoup(html, "lxml")
+        r = requests_session.get(url)
+        soup = BeautifulSoup(r.text, "lxml")
         if mode == PostMode.GENERAL:
             links_html = soup.find(id="questions").find_all(class_="question-hyperlink")
         elif mode == PostMode.QUESTION:
@@ -93,7 +97,7 @@ def getStackOverflowPosts(url, mode):
         links = ["https://stackoverflow.com" + question["href"] for question in links_html]
 
         for link in links:
-            yield StackOverflowPost(link)
+            yield StackOverflowPost(link, requests_session)
 
         # check if another page exists then updates url if so
         next_page = soup.find(class_="s-pagination--item js-pagination-item", rel="next")
@@ -104,9 +108,9 @@ def getStackOverflowPosts(url, mode):
 
 
 def getStackOverflowTags(url):
+    requests_session = requests.session()
     while True:
-        page = urlopen(url)
-        html = page.read().decode("utf-8")
+        html = requests_session.get(url).text
         soup = BeautifulSoup(html, "html.parser")
 
         for tag in soup.findAll(class_="post-tag"):
@@ -125,7 +129,7 @@ def main():
     start_time = time.time()
     writePostsToFile(100, filepath)
     end_time = time.time()
-    print(end_time-start_time)
+    print(end_time - start_time)
 
 
 def writePostsToFile(n, filepath):
@@ -135,7 +139,7 @@ def writePostsToFile(n, filepath):
     post_url = "https://stackoverflow.com/questions?tab=Votes"
     posts = getStackOverflowPosts(post_url, PostMode.GENERAL)
 
-    with open(filepath, 'w+',encoding= "utf-8") as fout:
+    with open(filepath, 'w+', encoding="utf-8") as fout:
         for _ in range(n):
             post = posts.__next__()
             unique_tags = post.getPostTags()
