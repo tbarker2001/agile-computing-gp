@@ -20,9 +20,11 @@ connection.once('open', () => {
 
 const tasksRouter = require('./routes/tasks');
 const usersRouter = require('./routes/users');
+const nlpTestRouter = require('./routes/nlptest');
 
 app.use('/tasks', tasksRouter);
 app.use('/users', usersRouter);
+app.use('/nlptest', nlpTestRouter);
 
 app.listen(port, () => {
     console.log(`Server is running on port: ${port}`);

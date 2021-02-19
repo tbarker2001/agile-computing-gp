@@ -2,7 +2,7 @@ import React from 'react';
 import "bootstrap/dist/css/bootstrap.min.css";
 import { BrowserRouter as Router, Route} from "react-router-dom";
 
-import Navbar from "./components/navbar.component"
+import Navbar from "./components/navbar.component";
 import TasksList from "./components/tasks-list.component";
 import EditTask from "./components/edit-task.component";
 import CreateTask from "./components/create-task.component";
