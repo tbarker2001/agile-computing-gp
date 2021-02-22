@@ -41,10 +41,7 @@ let runPython = (dirName, scriptName, args) => new Promise((success, reject) => 
 /// @returns {Promise<Object>} The model output on the profile
 let processProfile = (profileInfo) =>
   runPython(scraperDir, 'profile.py', profileInfo)
-  .then((scraperOutput) => runPython(modelsDir, "predictProfile.py", {
-    // TEMPORARY
-    "text": scraperOutput.toString()
-  }))
+  .then((scraperOutput) => runPython(modelsDir, "predictProfile.py", scraperOutput))
 
 /// @function processTask
 /// Invokes the NLP model on the task description to assign labels
