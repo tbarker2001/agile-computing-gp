@@ -9,9 +9,14 @@ modelFileName = os.path.join(modelDir, 'model.fasttextmodel')
 labelPrefixLength = len("__label__")
 
 """
-    Outputs the most likely labels for a given free text.
+    Outputs the most likely labels for a given scraped profile.
+    TODO: adjust input JSON format to scraper output
+    TODO: calculate data quality score
     Usage: <predict>  '{"text": <string>, "num_labels": <int>[=5], "min_probability": <real>[=0.0]}'
-    Returns: '[{"label": <string>, "probability": <real>}, ...]'
+    Returns: '{
+        "model_output": [{"label": <string>, "probability": <real>}, ...],
+        "data_quality_score": <real>
+    }'
 """
 if __name__ == "__main__":
     # Parse JSON input
@@ -27,13 +32,16 @@ if __name__ == "__main__":
     labels, probs = model.predict(text, k=num_labels, threshold=min_probability)
 
     # Construct output JSON object
-    output = [
-        dict(
-            label=label[labelPrefixLength:],
-            probability=prob
-        )
-        for label, prob in zip(labels, probs)
-    ]
+    output = {
+        "model_output": [
+            dict(
+                label=label[labelPrefixLength:],
+                probability=prob
+            )
+            for label, prob in zip(labels, probs)
+        ],
+        "data_quality_score": 1.0
+    }
     sys.stdout.write(json.dumps(output))
     sys.stdout.flush()
 
