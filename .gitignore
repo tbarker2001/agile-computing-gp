@@ -4,6 +4,9 @@ node_modules/*
 # Virtual environment
 agilecompenv/*
 
+# Python cache
+**/__pycache__/*
+
 # Scraped text files
 models/fastText_demo_model/*.txt
 
