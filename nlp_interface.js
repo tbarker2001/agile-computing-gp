@@ -1,6 +1,6 @@
 const { spawn } = require('child_process');
 const modelsDir = __dirname + "/models/fastText_demo_model/";
-const scraperDir = __dirname + "/scraper/TODO";
+const scraperDir = __dirname + "/scraper/code/";
 const virtualEnvDir = __dirname + "/agilecompenv"; // Replace with your venv or /usr
 const python = virtualEnvDir + "/bin/python";
 
@@ -40,7 +40,7 @@ let runPython = (dirName, scriptName, args) => new Promise((success, reject) => 
 /// @param {Object} profileInfo The contents of the add user form
 /// @returns {Promise<Object>} The model output on the profile
 let processProfile = (profileInfo) =>
-  runPython(scraperDir, SCRAPERNAMETODO, profileInfo)
+  runPython(scraperDir, 'profile.py', profileInfo)
   .then((scraperOutput) => runPython(modelsDir, "predictProfile.py", {
     // TEMPORARY
     "text": scraperOutput.toString()

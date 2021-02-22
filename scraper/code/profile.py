@@ -1,6 +1,6 @@
 import json
 import sys
-from scraper.code.stackOverflowScraper import StackOverflowProfile
+from stackOverflowScraper import StackOverflowProfile
 
 
 class UserProfile:
@@ -37,3 +37,8 @@ def test_user_profile():
 if __name__ == "__main__":
     input_json = json.loads(sys.argv[1])
     profile = UserProfile(input_json)
+    output = {
+            'text': profile.get_next_asked_stack_post().getPost()
+    }
+    sys.stdout.write(json.dumps(output))
+
