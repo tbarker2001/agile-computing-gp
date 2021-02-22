@@ -38,15 +38,19 @@ let runPython = (dirName, scriptName, args) => new Promise((success, reject) => 
 /// @function processProfile
 /// Scrapes user profile then invokes the NLP model to assign labels
 /// @param {Object} profileInfo The contents of the add user form
+///  { 'username': <username>, 'stack_profile': <url> }
 /// @returns {Promise<Object>} The model output on the profile
+///  { "model_output": <model output>, "data_quality_score": <real> }
+/// Caller must catch any errors.
 let processProfile = (profileInfo) =>
   runPython(scraperDir, 'profile.py', profileInfo)
   .then((scraperOutput) => runPython(modelsDir, "predictProfile.py", scraperOutput))
 
 /// @function processTask
 /// Invokes the NLP model on the task description to assign labels
-/// @param {Object} taskInfo Format TBD currently string of task description
-/// @returns {Promise<Object>} The model output on the task
+/// @param {Object} taskInfo Format TBD currently {'text': <task description string>}
+/// @returns {Promise<Object>} The <model output> on the task
+///  { "model_output": <model output>, "data_quality_score": <real> }
 /// Caller must catch any errors.
 let processTask = (taskInfo) =>
   runPython(modelsDir, "predictTask.py", taskInfo)
@@ -55,28 +59,23 @@ let processTask = (taskInfo) =>
 /// Adjusts the model output for the task with the creator's modifications
 /// (can delete labels or manually enter new labels)
 /// @param {Object} overriddenTaskInfo Contents of the override model output form
+///  Format TBD
 /// @returns {Promise<Object>} Modified model output
+///  { "model_output": <model output>, "data_quality_score": <real> }
 /// Caller must catch any errors.
 let overrideTaskLabels = (overriddenTaskInfo) =>
   runPython(modelsDir, "overrideTaskLabels.py", overriddenTaskInfo)
 
-// Expecting "[
-// 	{
-//		"task_id": <string>,
-//		"model_output": [{}...]
-//	},...
-// ], [
-//	{
-//		"account_id": <string>,
-//		"model_output": [{}...]
-//	},...
-// ]"
 /// @function calculateMatchScores
 /// Invokes the task to profile matching algorithm to calculate numeric
 /// relevance score between each pair of task and profile
-/// @param {List<Object>} tasks List of task model outputs
-/// @param {List<Object>} profiles List of profile model outputs
-/// @returns {Promise<Object>} Format TBD scores between each task-profile pair
+/// @param {Object} tasks Set of task model outputs, format is
+///  { <task_id>: <model_output>, ... }
+/// @param {Object} profiles Set of profile model outputs
+///  { <profile_id>: <model_output>, ... }
+/// @returns {Promise<Object>} Scores between each task-profile pair, refer to match.py
+///  { "account_set": {<account_id>: {<task_id>: {"score": <real>}}},
+///    "task_set": {<task_id>: {<account_id>: {"score": <real>}}} }
 /// Caller must catch any errors.
 let calculateMatchScores = (tasks, profiles) =>
   runPython(modelsDir, "match.py", {
