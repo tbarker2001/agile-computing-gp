@@ -9,7 +9,7 @@ router.route('/').get((req, res) => {
 
 router.route('/add').post((req, res) => {
   const username = req.body.username;
-  const password = null;
+  const password = req.body.password;
   const email = req.body.email;
   const assigned_tasks = [];
   const links = req.body.links;
