@@ -16,15 +16,16 @@ const Label = props => (
   </tr>
 )
 
-const User = props => (
+const User = props => {
+  return (
   <tr>
     <td>{props.user.username}</td>
-    <td>{}</td>
+    <td>{props.user.match_score}</td>
     <td>
       <a href="#" onClick={() => { props.deleteLabel(props.label._id) }}>Y/N</a>       
     </td>
   </tr>
-)
+)}
 
 /*
     Create task fulfills the following:
@@ -52,11 +53,13 @@ export default class CreateTask extends Component {
 
     this.state = {
       creator_username: '',
+      task_id: 'hardcoded_task_id', // TODO where do we assign id's to tasks
       title: '',
       assigned_users: '',
       description: '',
       state: '',
       date: new Date(),
+      model_output: {},
       nlp_labels: [],
       users: [],
       manually_added: ''
@@ -68,7 +71,7 @@ export default class CreateTask extends Component {
       .then(response => {
         if (response.data.length > 0) {
           this.setState({
-            users: response.data.map(user => user.username),
+//            users: response.data.map(user => user.username),
             creator_username: response.data[0].username
           })
         }
@@ -118,18 +121,19 @@ export default class CreateTask extends Component {
 
   findLabels(){
     // TODO: take in task description text, store labels from this in state.labels
-    const taskInfo = {
+    let taskInfo = {
       text: this.state.description
     };
     axios.post('http://localhost:5000/nlptest/processTask', taskInfo)
       .then(response => {
 	const modelOutput = response.data.model_output;
-	const labels = modelOutput.map(x => Label({
-	  label: {
+	this.setState({
+	  model_output: modelOutput
+	});
+	const labels = modelOutput.map(x => <Label label={{
 	    string: x.label,
 	    score: x.probability
-	  }
-	}));
+	  }}/>);
 	this.setState({
 	  nlp_labels: labels
 	})
@@ -138,6 +142,19 @@ export default class CreateTask extends Component {
 
   findUsers(){
     // TODO: take in this.state.labels, match with users and output users with their scores, stored in this.state.users
+    const taskInfo = {
+      task_id: this.state.task_id,
+      task_model_output: this.state.model_output
+    };
+    axios.post('http://localhost:5000/nlptest/topUsersForTask', taskInfo)
+      .then(response => {
+	this.setState({
+	  users: Object.keys(response.data).map(userId => <User user={{
+	    username: userId,
+	    match_score: response.data[userId].score
+	  }}/>)
+	});
+      })
   }
 
   labelList() {
@@ -147,10 +164,10 @@ export default class CreateTask extends Component {
 
   currentUsersList() {
     
-    return this.state.users.map(currentuser => {
-        return <User user={currentuser} key={currentuser._id}/>
-    })
-   // return this.state.users;      // TODO: same as labelList above, but for putting recommended users into its table from this.state.users
+//    return this.state.users.map(currentuser => {
+//        return <User user={currentuser} key={currentuser._id}/>
+//    })
+    return this.state.users;      // TODO: same as labelList above, but for putting recommended users into its table from this.state.users
   }
 
   onSubmit(e) {
@@ -247,7 +264,7 @@ export default class CreateTask extends Component {
           </div>
           <div className="tagBoxView">
             <article>
-                <button type="button" onclick={ this.findLabels() }>(Re)evaluate labels</button>
+                <button type="button" onClick={ this.findLabels.bind(this) }>(Re)evaluate labels</button>
                 <br></br><br></br>
                 <label>Biggest tags we identified: </label>
                 <table className="table">
@@ -264,7 +281,7 @@ export default class CreateTask extends Component {
                 </table>
                 <br></br>
                 <br></br>
-                <button type="button" onclick={ this.findUsers() }>(Re)evaluate recommended users</button>
+                <button type="button" onClick={ this.findUsers.bind(this) }>(Re)evaluate recommended users</button>
                 <br></br>
                 <br></br>
                 <label>Recommended users: </label>
