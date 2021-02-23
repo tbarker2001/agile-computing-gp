@@ -1,6 +1,16 @@
+import time
+
 from bs4 import BeautifulSoup
 from urllib.request import urlopen
-import multiprocessing as mp
+import requests
+
+from enum import Enum
+
+
+class PostMode(Enum):
+    GENERAL = 1
+    ANSWER = 2
+    QUESTION = 3
 
 
 class StackOverflowProfile:
@@ -11,10 +21,10 @@ class StackOverflowProfile:
         self._top_tags = getStackOverflowTags(top_tag_url)
 
         answered_post_url = url + "?tab=answers"
-        self._answered_posts = getStackOverflowPosts(answered_post_url, "u-answer")
+        self._answered_posts = getStackOverflowPosts(answered_post_url, PostMode.ANSWER)
 
         asked_post_url = url + "?tab=questions"
-        self._asked_posts = getStackOverflowPosts(asked_post_url, "u-question")
+        self._asked_posts = getStackOverflowPosts(asked_post_url, PostMode.QUESTION)
 
     def __str__(self):
         return self._username
@@ -41,18 +51,21 @@ def cleanLines(lines):
 
 class StackOverflowPost:
 
-    def __init__(self, url):
-        html = urlopen(url).read().decode("utf-8")
-        soup = BeautifulSoup(html, "html.parser")
 
-        self._post_tags = [tag.text for tag in soup.find(class_="post-taglist").findAll(class_="post-tag")]
+    def __init__(self, url, session=None):
+        if session is None:
+            html = urlopen(url).read()
+        else:
+            html = session.get(url).text
+        soup = BeautifulSoup(html, "lxml")
+
+
+        self._post_tags = {tag.text for tag in soup.find(class_="post-taglist").findAll(class_="post-tag")}
         self._title = soup.find(id="question-header").find(class_="question-hyperlink").string
 
         self._post = cleanLines(soup.find(class_="s-prose js-post-body").findAll("p"))
 
         self._answers = [cleanLines(answer.findAll("p")) for answer in soup.findAll(class_="answer")]
-
-        # todo more comprehensive cleanup of freetext
 
     def getPostTags(self):
         return self._post_tags
@@ -71,14 +84,17 @@ class StackOverflowPost:
 
 
 def getStackOverflowPosts(url, mode):
+
+    requests_session = requests.session()
     while True:
-        html = urlopen(url).read().decode("utf-8")
-        soup = BeautifulSoup(html, "html.parser")
-        if mode == "general":
+        r = requests_session.get(url)
+        soup = BeautifulSoup(r.text, "lxml")
+
+        if mode == PostMode.GENERAL:
             links_html = soup.find(id="questions").find_all(class_="question-hyperlink")
-        elif mode == "u-question":
+        elif mode == PostMode.QUESTION:
             links_html = soup.find(id="user-tab-questions").find_all(class_="question-hyperlink")
-        elif mode == "u-answer":
+        elif mode == PostMode.ANSWER:
             links_html = soup.find(id="user-tab-answers").find_all(class_="answer-hyperlink")
         else:
             return
@@ -86,7 +102,8 @@ def getStackOverflowPosts(url, mode):
         links = ["https://stackoverflow.com" + question["href"] for question in links_html]
 
         for link in links:
-            yield StackOverflowPost(link)
+
+            yield StackOverflowPost(link, requests_session)
 
         # check if another page exists then updates url if so
         next_page = soup.find(class_="s-pagination--item js-pagination-item", rel="next")
@@ -97,9 +114,10 @@ def getStackOverflowPosts(url, mode):
 
 
 def getStackOverflowTags(url):
+
+    requests_session = requests.session()
     while True:
-        page = urlopen(url)
-        html = page.read().decode("utf-8")
+        html = requests_session.get(url).text
         soup = BeautifulSoup(html, "html.parser")
 
         for tag in soup.findAll(class_="post-tag"):
@@ -113,25 +131,34 @@ def getStackOverflowTags(url):
             url = "https://stackoverflow.com" + next_page["href"]
 
 
-if __name__ == "__main__":
+def main():
 
-    print(StackOverflowProfile("https://stackoverflow.com/users/87234/gmannickg"))
+    filepath = '../../models/fastText_demo_model/stackoverflowdata.txt'
+    start_time = time.time()
+    writePostsToFile(100, filepath)
+    end_time = time.time()
+    print(end_time - start_time)
+
+
+
+def writePostsToFile(n, filepath):
+    """
+    Writes the most popular n posts to a file
+    """
     post_url = "https://stackoverflow.com/questions?tab=Votes"
-    posts = getStackOverflowPosts(post_url, "general")
+    posts = getStackOverflowPosts(post_url, PostMode.GENERAL)
 
-    # write data out to file in format required by fastText
-    with open('../models/fastText_demo_model/stackoverflowdata.txt', 'w+') as fout:
-        for _ in range(10):
+
+    with open(filepath, 'w+', encoding="utf-8") as fout:
+
+        for _ in range(n):
             post = posts.__next__()
-            unique_tags = set(post._post_tags)
-            labels_prefix = ''
-            for tag in unique_tags:
-                labels_prefix += ('__label__' + tag + ' ')
-            fout.write(labels_prefix + post._post + " " + " ".join(post._answers) + '\n')
+            unique_tags = post.getPostTags()
+            labels_prefix = "__label__ " + " __label__ ".join(unique_tags)
+            line = "{labels} {post} {answers}\n".format(labels=labels_prefix, post=post.getPost(),
+                                                        answers=" ".join(post.getAnswers()))
+            fout.write(line)
 
-    # todo error catching for incorrect website links and testing
-    tag_page_url = "https://stackoverflow.com/tags"
-    tags = getStackOverflowTags(tag_page_url)
-    bounded_tags = [tags.__next__() for _ in range(5)]
-    for t in bounded_tags:
-        print(t)
+
+if __name__ == "__main__":
+    main()
