@@ -6,11 +6,24 @@ export default class CreateUser extends Component {
     super(props);
 
     this.onChangeUsername = this.onChangeUsername.bind(this);
+    this.onChangeEmail = this.onChangeEmail.bind(this);
+    this.onChangePassword = this.onChangePassword.bind(this);
     this.onSubmit = this.onSubmit.bind(this);
 
     this.state = {
-      username: ''
+      username: '',
+      password: '',
+      email: '',
+      assigned_tasks: '',
+      links:'',
+      nlp_labels: ''
     }
+  }
+
+  onChangePassword(e) {
+    this.setState({
+      password: e.target.value
+    })
   }
 
   onChangeUsername(e) {
@@ -19,11 +32,24 @@ export default class CreateUser extends Component {
     })
   }
 
+  onChangeEmail(e) {
+    this.setState({
+      email: e.target.value
+    })
+  }
+
+  
+
   onSubmit(e) {
     e.preventDefault();
 
     const user = {
-      username: this.state.username
+      username: this.state.username,
+      password: this.state.password,
+      email: this.state.email,
+      assigned_tasks: '',
+      links:'',
+      nlp_labels: ''
     }
 
     console.log(user);
@@ -31,30 +57,49 @@ export default class CreateUser extends Component {
     axios.post('http://localhost:5000/users/add', user)
       .then(res => console.log(res.data));
 
-    this.setState({
-      username: ''
-    })
+    
+      window.location = '/signupcomplete';
+
+    
   }
 
   render() {
     return (
       <div>
-        <h3>Create New User</h3>
-        <form onSubmit={this.onSubmit}>
-          <div className="form-group"> 
-            <label>Username: </label>
-            <input  type="text"
-                required
-                className="form-control"
-                value={this.state.username}
-                onChange={this.onChangeUsername}
-                />
-          </div>
-          <div className="form-group">
-            <input type="submit" value="Create User" className="btn btn-primary" />
-          </div>
-        </form>
+      <div className="pairBoxes">
+         <div className="personalBoxView">
+            <h3>Create your profile</h3>
+            <form onSubmit={this.onSubmit}>
+                <div className="form-group"> 
+                <label>Username: </label>
+                <input  type="text"
+                    required
+                    className="form-control"
+                    value={this.state.username}
+                    onChange={this.onChangeUsername}
+                    />
+                <label>Password: </label>
+                <input  type="text"
+                    required
+                    className="form-control"
+                    value={this.state.password}
+                    onChange={this.onChangePassword}
+                    />
+                <label>Email: </label>
+                <input  type="text"
+                    required
+                    className="form-control"
+                    value={this.state.email}
+                    onChange={this.onChangeEmail}
+                    />
+                </div>
+                <div className="form-group">
+                <input type="submit" value="Create User" className="btn btn-primary" />
+                </div>
+            </form>
+         </div>
       </div>
+    </div>
     )
   }
 }

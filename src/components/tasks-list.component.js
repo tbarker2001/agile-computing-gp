@@ -13,7 +13,7 @@ const Task = props => (
       <Link to={"#"}>view (1)</Link> 
     </td>
     <td>
-      <Link to={"/edit/"+props.task._id}>edit</Link> | <a href="#" onClick={() => { props.deleteTask(props.task._id) }}>delete</a>
+      <Link to={"/view/"+props.task._id}>view</Link> | <Link to={"/edit/"+props.task._id}>edit</Link> | <a href="#" onClick={() => { props.deleteTask(props.task._id) }}>delete</a>
     </td>
   </tr>
 )
