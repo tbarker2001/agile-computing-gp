@@ -14,9 +14,9 @@ export default class CreateUser extends Component {
       username: '',
       password: '',
       email: '',
-      assigned_tasks: '',
-      links:'',
-      nlp_labels: ''
+      //assigned_tasks: '',
+      links:[], // currently not set on signup
+      //nlp_labels: ''
     }
   }
 
@@ -39,7 +39,6 @@ export default class CreateUser extends Component {
   }
 
   
-
   onSubmit(e) {
     e.preventDefault();
 
@@ -47,20 +46,16 @@ export default class CreateUser extends Component {
       username: this.state.username,
       password: this.state.password,
       email: this.state.email,
-      assigned_tasks: '',
-      links:'',
-      nlp_labels: ''
+      assigned_tasks: [],
+      links: this.state.links,
+      nlp_labels: []
     }
 
     console.log(user);
 
     axios.post('http://localhost:5000/users/add', user)
       .then(res => console.log(res.data));
-
-    
       window.location = '/signupcomplete';
-
-    
   }
 
   render() {
