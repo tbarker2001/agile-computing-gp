@@ -118,6 +118,22 @@ export default class CreateTask extends Component {
 
   findLabels(){
     // TODO: take in task description text, store labels from this in state.labels
+    const taskInfo = {
+      text: this.state.description
+    };
+    axios.post('http://localhost:5000/nlptest/processTask', taskInfo)
+      .then(response => {
+	const modelOutput = response.data.model_output;
+	const labels = modelOutput.map(x => Label({
+	  label: {
+	    string: x.label,
+	    score: x.probability
+	  }
+	}));
+	this.setState({
+	  nlp_labels: labels
+	})
+      })
   }
 
   findUsers(){
@@ -125,7 +141,8 @@ export default class CreateTask extends Component {
   }
 
   labelList() {
-    return this.state.labels        // TODO: input labels list from this.state.labels, output Label list suitable for a table (tbody) (similar to taskList() function in tasks-list.component.js)
+    // TODO: input labels list from this.state.labels, output Label list suitable for a table (tbody) (similar to taskList() function in tasks-list.component.js)
+    return this.state.nlp_labels
   }
 
   currentUsersList() {
