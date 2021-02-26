@@ -1,26 +1,38 @@
 {
-  "name": "task-management-site",
-  "version": "0.0.0",
+  "name": "agile-computing-gp",
+  "version": "0.1.0",
   "private": true,
-  "scripts": {
-    "start": "node ./bin/www",
-    "test": "mocha --timeout 5000",
-    "eslint": "eslint ."
-  },
   "dependencies": {
-    "cookie-parser": "~1.4.4",
-    "debug": "~2.6.9",
-    "express": "~4.16.1",
-    "http-errors": "~1.6.3",
-    "jade": "~1.11.0",
-    "kerberos": "~0.0.17",
-    "mongodb": "~2.0.33",
-    "mongoose": "~5.11.15",
-    "morgan": "~1.9.1"
+    "axios": "^0.18.0",
+    "bootstrap": "^4.3.1",
+    "react": "^16.8.6",
+    "react-datepicker": "^2.5.0",
+    "react-dom": "^16.8.6",
+    "react-router-dom": "^5.0.0",
+    "react-scripts": "^3.4.4"
   },
   "devDependencies": {
-    "eslint": "^7.20.0",
-    "eslint-plugin-react": "^7.22.0",
-    "mocha": "^8.3.0"
+    "nodemon": "^2.0.7"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject"
+  },
+  "eslintConfig": {
+    "extends": "react-app"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
   }
 }
