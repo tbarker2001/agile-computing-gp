@@ -28,7 +28,7 @@ backend/nlp_models/fastText_demo_model/*.txt
 /build
 
 # dbs logs
-backend/mongodata/journal
+backend/mongodata
 
 # misc
 .DS_Store
