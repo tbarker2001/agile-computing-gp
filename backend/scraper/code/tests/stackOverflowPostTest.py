@@ -1,6 +1,6 @@
 import unittest
 
-from scraper.code import stackOverflowScraper as stoScraper
+from backend.scraper.code import stackOverflowScraper as stoScraper
 
 
 class TestStackOverFlowPost(unittest.TestCase):

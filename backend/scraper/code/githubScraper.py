@@ -21,6 +21,13 @@ class GithubIssue:
         return self._post
 
 
+
+class GithubCommit:
+    "Takes commit, tokenize title into tags then store code as freetext"
+
+    def __init__(self):
+        pass
+
 def main():
     GithubIssue("https://github.com/google/blockly/issues/4617")
 
