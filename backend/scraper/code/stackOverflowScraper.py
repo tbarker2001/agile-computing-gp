@@ -51,14 +51,12 @@ def cleanLines(lines):
 
 class StackOverflowPost:
 
-
     def __init__(self, url, session=None):
         if session is None:
             html = urlopen(url).read()
         else:
             html = session.get(url).text
         soup = BeautifulSoup(html, "lxml")
-
 
         self._post_tags = {tag.text for tag in soup.find(class_="post-taglist").findAll(class_="post-tag")}
         self._title = soup.find(id="question-header").find(class_="question-hyperlink").string
@@ -84,7 +82,6 @@ class StackOverflowPost:
 
 
 def getStackOverflowPosts(url, mode):
-
     requests_session = requests.session()
     while True:
         r = requests_session.get(url)
@@ -102,7 +99,6 @@ def getStackOverflowPosts(url, mode):
         links = ["https://stackoverflow.com" + question["href"] for question in links_html]
 
         for link in links:
-
             yield StackOverflowPost(link, requests_session)
 
         # check if another page exists then updates url if so
@@ -114,11 +110,10 @@ def getStackOverflowPosts(url, mode):
 
 
 def getStackOverflowTags(url):
-
     requests_session = requests.session()
     while True:
         html = requests_session.get(url).text
-        soup = BeautifulSoup(html, "html.parser")
+        soup = BeautifulSoup(html, "lxml")
 
         for tag in soup.findAll(class_="post-tag"):
             yield tag.string
@@ -132,13 +127,11 @@ def getStackOverflowTags(url):
 
 
 def main():
-
-    filepath = '../../models/fastText_demo_model/stackoverflowdata.txt'
+    filepath = '../../../models/fastText_demo_model/stackoverflowdata.txt'
     start_time = time.time()
     writePostsToFile(100, filepath)
     end_time = time.time()
     print(end_time - start_time)
-
 
 
 def writePostsToFile(n, filepath):
@@ -148,9 +141,7 @@ def writePostsToFile(n, filepath):
     post_url = "https://stackoverflow.com/questions?tab=Votes"
     posts = getStackOverflowPosts(post_url, PostMode.GENERAL)
 
-
     with open(filepath, 'w+', encoding="utf-8") as fout:
-
         for _ in range(n):
             post = posts.__next__()
             unique_tags = post.getPostTags()
