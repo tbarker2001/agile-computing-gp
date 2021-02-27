@@ -1,6 +1,8 @@
 import json
 import sys
 
+from backend.scraper.code.github_scraper import GithubProfile
+from backend.scraper.code.parsing_methods import generator_pop
 from backend.scraper.code.stack_overflow_scraper import StackOverflowProfile
 
 
@@ -13,17 +15,19 @@ class UserProfile:
         self._links = user_details["links"] if "links" in user_details else {}
 
         if len(self._links) > 0:
-            self._stack_profile = StackOverflowProfile(
-                self._links["stack_profile"]) if "stack_profile" in user_details["links"] else None
+            self._stack_profile = StackOverflowProfile(self._links["stack_profile"]) if "stack_profile" in user_details[
+                "links"] else None
+            self._github_profile = GithubProfile(self._links["github_profile"]) if "github_profile" in user_details[
+                "links"] else None
 
     def get_next_stack_tag(self):
-        return self._stack_profile.get_top_tags().__next__() if self._stack_profile is not None else None
+        return generator_pop(self._stack_profile.get_top_tags()) if self._stack_profile is not None else None
 
     def get_next_asked_stack_post(self):
-        return self._stack_profile.get_asked_posts().__next__() if self._stack_profile is not None else None
+        return generator_pop(self._stack_profile.get_asked_posts()) if self._stack_profile is not None else None
 
     def get_next_answered_stack_post(self):
-        return self._stack_profile.get_answered_posts().__next__() if self._stack_profile is not None else None
+        return generator_pop(self._stack_profile.get_answered_posts()) if self._stack_profile is not None else None
 
     def get_username(self):
         return self._username
@@ -32,6 +36,8 @@ class UserProfile:
         freetext = ""
         if self._stack_profile is not None:
             freetext += self._stack_profile.get_free_text()
+        if self._github_profile is not None:
+            freetext += self._github_profile.get_free_text()
         return freetext
 
 
