@@ -1,3 +1,4 @@
+import re
 import time
 
 from bs4 import BeautifulSoup
@@ -6,7 +7,7 @@ import requests
 
 from enum import Enum
 
-from backend.scraper.code.parsing_methods import cleanLines
+from backend.scraper.code.parsing_methods import cleanLines, generator_pop
 
 
 class PostMode(Enum):
@@ -53,17 +54,14 @@ class StackOverflowProfile:
                 generator = self._asked_posts
             elif key == "top_tags":
                 generator = self._top_tags
+
             if generator is not None:
-                item = generator.__next__()
-                if type(item) == StackOverflowPost:
-                    unique_tags = item.get_post_tags()
-                    labels_prefix = "__label__ " + " __label__ ".join(unique_tags)
-                    line = "{labels} {post} {answers}\n".format(labels=labels_prefix, post=item.get_post(),
-                                                                answers=" ".join(item.get_answers()))
-                    free_text += line
-                elif type(item) == str:
-                    line = "{label}\n".format(label=item)
-                    free_text += line
+                for _ in range(n):
+                    item = generator_pop(generator)
+                    if type(item) == StackOverflowPost:
+                        free_text += item.get_free_text() + '\n'
+                    elif type(item) == str:
+                        free_text += item + '\n'
         return free_text
 
 
@@ -77,7 +75,9 @@ class StackOverflowPost:
         soup = BeautifulSoup(html, "lxml")
 
         self._post_tags = {tag.text for tag in soup.find(class_="post-taglist").findAll(class_="post-tag")}
-        self._title = soup.find(id="question-header").find(class_="question-hyperlink").string
+
+        title_text = soup.find(id="question-header").find(class_="question-hyperlink").string
+        self._title = re.sub("  +|\\n|\\r", "", title_text)
 
         self._post = cleanLines(soup.find(class_="s-prose js-post-body").findAll("p"))
 
@@ -96,6 +96,7 @@ class StackOverflowPost:
         return self._answers
 
     def get_free_text(self):
+        #todo consider tokenising title and added that as tags
         labels_prefix = "__label__ " + " __label__ ".join(self._post_tags)
         free_text = "{labels} {post} {answers}".format(labels=labels_prefix, post=self._post,
                                                        answers=" ".join(self._answers))
@@ -167,9 +168,10 @@ def write_posts_to_file(n, filepath):
 
     with open(filepath, 'w+', encoding="utf-8") as fout:
         for _ in range(n):
-            post = posts.__next__()
-            line = post.get_free_text() + "\n"
-            fout.write(line)
+            post = generator_pop(posts)
+            if post is not None:
+                line = post.get_free_text() + "\n"
+                fout.write(line)
 
 
 if __name__ == "__main__":

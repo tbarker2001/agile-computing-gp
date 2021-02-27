@@ -1,3 +1,5 @@
+import re
+
 import nltk
 
 
@@ -22,6 +24,14 @@ def cleanLines(lines):
     for line in lines:
         if line.div is not None:
             line.div.extract()
-        cleaned_lines.append(line.text.replace('\n', ' ').replace('\r', ''))
+        cleaned_lines.append(re.sub("\\r\\n|\\n", " ", line.text))
     joined_lines = " ".join(cleaned_lines)
     return joined_lines
+
+
+def generator_pop(iterable):
+    try:
+        first = next(iterable)
+    except StopIteration:
+        return None
+    return first
