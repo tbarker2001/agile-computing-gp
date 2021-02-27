@@ -6,7 +6,7 @@ from backend.scraper.code.profile import UserProfile
 class TestProfile(unittest.TestCase):
 
     def setUp(self):
-        with open("profile_test.json") as json_file:
+        with open("profile_example.json") as json_file:
             self._profiles_json = json.load(json_file)
 
         self._profiles = {UserProfile(data) for data in self._profiles_json.values()}

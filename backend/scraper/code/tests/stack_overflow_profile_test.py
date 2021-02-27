@@ -1,6 +1,6 @@
 import unittest
 
-from backend.scraper.code.stackOverflowScraper import StackOverflowProfile
+from backend.scraper.code.stack_overflow_scraper import StackOverflowProfile
 
 
 class TestStackOverFlowProfile(unittest.TestCase):
