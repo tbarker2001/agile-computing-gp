@@ -6,6 +6,8 @@ import requests
 
 from enum import Enum
 
+from backend.scraper.code.parsing_methods import cleanLines
+
 
 class PostMode(Enum):
     GENERAL = 1
@@ -18,35 +20,51 @@ class StackOverflowProfile:
         self._username = url[url.rfind("/") + 1:]
 
         top_tag_url = url + "?tab=tags"
-        self._top_tags = getStackOverflowTags(top_tag_url)
+        self._top_tags = get_stack_overflow_tags(top_tag_url)
 
         answered_post_url = url + "?tab=answers"
-        self._answered_posts = getStackOverflowPosts(answered_post_url, PostMode.ANSWER)
+        self._answered_posts = get_stack_overflow_posts(answered_post_url, PostMode.ANSWER)
 
         asked_post_url = url + "?tab=questions"
-        self._asked_posts = getStackOverflowPosts(asked_post_url, PostMode.QUESTION)
+        self._asked_posts = get_stack_overflow_posts(asked_post_url, PostMode.QUESTION)
 
     def __str__(self):
         return self._username
 
-    def getTopTags(self):
+    def get_top_tags(self):
         return self._top_tags
 
-    def getAnsweredPosts(self):
+    def get_answered_posts(self):
         return self._answered_posts
 
-    def getAskedPosts(self):
+    def get_asked_posts(self):
         return self._asked_posts
 
+    def get_free_text(self, parameters=None):
+        if parameters is None:
+            parameters = {"answered_posts": 25, "asked_posts": 25, "top_tags": 0}
+        free_text = ""
 
-def cleanLines(lines):
-    cleaned_lines = []
-    for line in lines:
-        if line.div is not None:
-            line.div.extract()
-        cleaned_lines.append(line.text.replace('\n', ' ').replace('\r', ''))
-    joined_lines = " ".join(cleaned_lines)
-    return joined_lines
+        for key, n in parameters.items():
+            generator = None
+            if key == "answered_posts":
+                generator = self._answered_posts
+            elif key == "asked_posts":
+                generator = self._asked_posts
+            elif key == "top_tags":
+                generator = self._top_tags
+            if generator is not None:
+                item = generator.__next__()
+                if type(item) == StackOverflowPost:
+                    unique_tags = item.get_post_tags()
+                    labels_prefix = "__label__ " + " __label__ ".join(unique_tags)
+                    line = "{labels} {post} {answers}\n".format(labels=labels_prefix, post=item.get_post(),
+                                                                answers=" ".join(item.get_answers()))
+                    free_text += line
+                elif type(item) == str:
+                    line = "{label}\n".format(label=item)
+                    free_text += line
+        return free_text
 
 
 class StackOverflowPost:
@@ -65,23 +83,29 @@ class StackOverflowPost:
 
         self._answers = [cleanLines(answer.findAll("p")) for answer in soup.findAll(class_="answer")]
 
-    def getPostTags(self):
+    def get_post_tags(self):
         return self._post_tags
 
-    def getTitle(self):
+    def get_title(self):
         return self._title
 
-    def getPost(self):
+    def get_post(self):
         return self._post
 
-    def getAnswers(self):
+    def get_answers(self):
         return self._answers
+
+    def get_free_text(self):
+        labels_prefix = "__label__ " + " __label__ ".join(self._post_tags)
+        free_text = "{labels} {post} {answers}".format(labels=labels_prefix, post=self._post,
+                                                       answers=" ".join(self._answers))
+        return free_text
 
     def __str__(self):
         return self._title
 
 
-def getStackOverflowPosts(url, mode):
+def get_stack_overflow_posts(url, mode):
     requests_session = requests.session()
     while True:
         r = requests_session.get(url)
@@ -109,7 +133,7 @@ def getStackOverflowPosts(url, mode):
             url = "https://stackoverflow.com" + next_page["href"]
 
 
-def getStackOverflowTags(url):
+def get_stack_overflow_tags(url):
     requests_session = requests.session()
     while True:
         html = requests_session.get(url).text
@@ -129,25 +153,22 @@ def getStackOverflowTags(url):
 def main():
     filepath = '../../../models/fastText_demo_model/stackoverflowdata.txt'
     start_time = time.time()
-    writePostsToFile(100, filepath)
+    write_posts_to_file(100, filepath)
     end_time = time.time()
     print(end_time - start_time)
 
 
-def writePostsToFile(n, filepath):
+def write_posts_to_file(n, filepath):
     """
     Writes the most popular n posts to a file
     """
     post_url = "https://stackoverflow.com/questions?tab=Votes"
-    posts = getStackOverflowPosts(post_url, PostMode.GENERAL)
+    posts = get_stack_overflow_posts(post_url, PostMode.GENERAL)
 
     with open(filepath, 'w+', encoding="utf-8") as fout:
         for _ in range(n):
             post = posts.__next__()
-            unique_tags = post.getPostTags()
-            labels_prefix = "__label__ " + " __label__ ".join(unique_tags)
-            line = "{labels} {post} {answers}\n".format(labels=labels_prefix, post=post.getPost(),
-                                                        answers=" ".join(post.getAnswers()))
+            line = post.get_free_text() + "\n"
             fout.write(line)
 
 

@@ -1,6 +1,6 @@
 import unittest
 
-from backend.scraper.code import stackOverflowScraper as stoScraper
+from backend.scraper.code import stack_overflow_scraper as stoScraper
 
 
 class TestStackOverFlowPost(unittest.TestCase):
@@ -21,7 +21,7 @@ class TestStackOverFlowPost(unittest.TestCase):
                   "How do I delete a Git branch locally and remotely?"]
 
         for i, post in enumerate(self._posts):
-            self.assertEqual(post.getTitle(), titles[i])
+            self.assertEqual(post.get_title(), titles[i])
 
     def test_post_tags(self):
         """
@@ -32,7 +32,7 @@ class TestStackOverFlowPost(unittest.TestCase):
                 {"git", "version-control", "git-branch", "git-push", "git-remote"}]
 
         for i, post in enumerate(self._posts):
-            self.assertEqual(post.getPostTags(), tags[i])
+            self.assertEqual(post.get_post_tags(), tags[i])
 
     def test_post_text(self):
         """
@@ -50,7 +50,7 @@ class TestStackOverFlowPost(unittest.TestCase):
             "the remotes/origin/bugfix branch both locally and remotely?"]
 
         for i, post in enumerate(self._posts):
-            self.assertEqual(post.getPost(), post_text[i])
+            self.assertEqual(post.get_post(), post_text[i])
 
     def test_post_first_answer(self):
         """
@@ -61,7 +61,7 @@ class TestStackOverFlowPost(unittest.TestCase):
                         "Note that in most cases the remote name is origin. In such a case you'll have to use the command like so. To delete the local branch use one of the following: Note: The -d option is an alias for --delete, which only deletes the branch if it has already been fully merged in its upstream branch. You could also use -D, which is an alias for --delete --force, which deletes the branch \"irrespective of its merged status.\" [Source: man git-branch] Also note that git branch -d branch_name will fail if you are currently in the branch you want to remove. The message starts with error: Cannot delete the branch 'branch_name'. If so, first switch to some other branch, for example: git checkout master. As of Git v1.7.0, you can delete a remote branch using which might be easier to remember than which was added in Git v1.5.0 \"to delete a remote branch or a tag.\" Starting on Git v2.8.0 you can also use git push with the -d option as an alias for --delete. Therefore, the version of Git you have installed will dictate whether you need to use the easier or harder syntax. From Chapter 3 of Pro Git by Scott Chacon: Suppose you’re done with a remote branch — say, you and your collaborators are finished with a feature and have merged it into your remote’s master branch (or whatever branch your stable code-line is in). You can delete a remote branch using the rather obtuse syntax git push [remotename] :[branch]. If you want to delete your server-fix branch from the server, you run the following: Boom. No more branches on your server. You may want to dog-ear this page, because you’ll need that command, and you’ll likely forget the syntax. A way to remember this command is by recalling the git push [remotename] [localbranch]:[remotebranch] syntax that we went over a bit earlier. If you leave off the [localbranch] portion, then you’re basically saying, “Take nothing on my side and make it be [remotebranch].” I issued git push origin: bugfix and it worked beautifully. Scott Chacon was right—I will want to dog ear that page (or virtually dog ear by answering this on Stack Overflow). Then you should execute this on other machines to propagate changes."]
 
         for i, post in enumerate(self._posts):
-            self.assertEqual(post.getAnswers()[0], first_answer[i])
+            self.assertEqual(post.get_answers()[0], first_answer[i])
 
 
 if __name__ == '__main__':

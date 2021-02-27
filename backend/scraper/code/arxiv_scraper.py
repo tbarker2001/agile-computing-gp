@@ -5,6 +5,8 @@ import re
 import nltk
 import time
 
+from backend.scraper.code import parsing_methods
+
 nltk.download('punkt')
 nltk.download('averaged_perceptron_tagger')
 taggedfilename = "arxiv-tagged-data-2020.txt"
@@ -12,22 +14,22 @@ untaggedfilename = "arxiv-untagged-data-2020.txt"
 
 
 def main():
-    scanAllArxivComputerScienceCategories2020()
+    scan_all_arxiv_computer_science_categories2020()
 
 
 # TODO: ensure this works for all catergories on export.arxiv
-def scanAllArxivCategoriesRecent():
+def scan_all_arxiv_categories_recent():
     session = requests.session()
     url = "https://export.arxiv.org/"
     html = session.get(url).text
 
     soup = BeautifulSoup(html, "lxml")
     for link in soup.findAll('a', attrs={'href': re.compile("list/")}):
-        scanCategory(url + link.get('href'), session=session)
+        scan_category(url + link.get('href'), session=session)
 
 
 # scrape from all arxiv categories
-def scanAllArxivComputerScienceCategories2020():
+def scan_all_arxiv_computer_science_categories2020():
     url = "https://export.arxiv.org/"
     # Headers so they know who we are
     headers = {
@@ -43,10 +45,10 @@ def scanAllArxivComputerScienceCategories2020():
     for link in soup.findAll('a', attrs={'href': re.compile("list/cs\.")}):
         l = "https://export.arxiv.org/" + (link.get('href')).replace("recent", "20")
         print("\n " + l + " Parsed " + str(parsed))
-        scanCategory(l, parsed, session)
+        scan_category(l, parsed, session)
 
 
-def scanCategory(url, parsed, session=None):
+def scan_category(url, parsed, session=None):
     print("hi")
 
     headers = {
@@ -63,7 +65,7 @@ def scanCategory(url, parsed, session=None):
     allfilespage = (str(soup.find("small"))).split(' ')[3]
 
     print(allfilespage)
-    if ((int(allfilespage)) > 2000):
+    if (int(allfilespage)) > 2000:
         allfilespage = "2000"
     url += "?skip=0&show=" + allfilespage
 
@@ -80,12 +82,12 @@ def scanCategory(url, parsed, session=None):
         if parsed % 200 == 0:
             time.sleep(60)
         print(str(c2) + ', ', end='')
-        parsePaper("https://export.arxiv.org/" + link.get('href'), session)
+        parse_paper("https://export.arxiv.org/" + link.get('href'), session)
         c2 += 1
         parsed += 1
 
 
-def parsePaper(url, session=None):
+def parse_paper(url, session=None):
     # Fetch parts from page
 
     # three sets of useful information here, tags from subjects, what we can get from the title, what we can get out
@@ -116,31 +118,15 @@ def parsePaper(url, session=None):
 
     # Process data
     # TODO: consider if more processing could help
-    titletokens = tokenizeTitle(title)
+    title_tokens = parsing_methods.tokenize_title(title)
 
     # Save the data to files suitable for use with fasttext, one for supervised learning, one for non supervised leaning
-    writeLabelledAbstracts(subjects, titletokens, abstract, taggedfilename)
-    writeAbstractsandTitles(abstract, title, untaggedfilename)
-
-
-def tokenizeTitle(title):
-    # split title into initial tokens
-    tokens = nltk.word_tokenize(title)
-    tagged = nltk.pos_tag(tokens)
-
-    # remove tokens that are tagged with CC (coordinating conjunction), DT (Determiner), EX (existential there),
-    # IN (preposition of subordinating conjunction) PDT, PRP, PRP$, RP, TO, UH, WP, WP$, WRB, WDT
-    tagged = list(filter(
-        lambda x: x[1] != 'CC' and x[1] != 'DT' and x[1] != 'EX' and x[1] != 'IN' and x[1] != 'PDT' and x[
-            1] != 'PRP' and x[1] != 'PRP$' and x[1] != 'RP' and x[1] != 'TO' and x[1] != 'UH' and x[1] != 'WP' and x[
-                      1] != 'WP$' and x[1] != 'WRB' and x[1] != 'WDT', tagged))
-
-    # TODO: potentially develop this to gather by clauses
-    return tagged
+    write_labelled_abstracts(subjects, title_tokens, abstract, taggedfilename)
+    write_abstracts_and_titles(abstract, title, untaggedfilename)
 
 
 # takes a list of tag strings and writes them to a file
-def writeLabelledAbstracts(subjects, title, abstract, filename):
+def write_labelled_abstracts(subjects, title, abstract, filename):
     try:
         f = open(filename, "a")
         for tag in subjects:
@@ -155,7 +141,7 @@ def writeLabelledAbstracts(subjects, title, abstract, filename):
         f.close()
 
 
-def writeAbstractsandTitles(abstract, title, filename):
+def write_abstracts_and_titles(abstract, title, filename):
     try:
         f = open(filename, "a")
 
