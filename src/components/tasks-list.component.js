@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { Link } from 'react-router-dom';
-import cookie from 'react-cookies'
+import Cookies from 'js-cookie';
 import axios from 'axios';
 
 const Task = props => (
@@ -25,12 +25,14 @@ export default class TasksList extends Component {
 
     this.deleteTask = this.deleteTask.bind(this)
 
-    this.state = {tasks: [], username: '', logged_in: false};
+    var uname = Cookies.get("username")
+
+    this.state = {tasks: [], username: uname, logged_in: !(typeof uname === 'undefined')};
   }
 
   componentDidMount() {
-    this.setState({ username: cookie.load('username') })
-    this.setState({ logged_in: (typeof this.state.username === 'undefined') })
+    console.log(`Set username to: ${this.state.username}`)
+    console.log(`Set logged_in to: ${this.state.logged_in}`)
 
     axios.get('http://localhost:5000/tasks/')
       .then(response => {

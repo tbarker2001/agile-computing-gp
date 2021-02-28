@@ -5,8 +5,8 @@
   "dependencies": {
     "axios": "^0.18.0",
     "bootstrap": "^4.3.1",
+    "js-cookie": "~2.2.1",
     "react": "^16.8.6",
-    "react-cookies": "~0.1.1",
     "react-datepicker": "^2.5.0",
     "react-dom": "^16.8.6",
     "react-router-dom": "^5.0.0",
