@@ -15,8 +15,6 @@ const Label = props => (
   </tr>
 )
 
-
-
 export default class ViewTask extends Component {
   constructor(props) {
     super(props);
