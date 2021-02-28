@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import { Link } from 'react-router-dom';
+import cookie from 'react-cookies'
 import axios from 'axios';
 
 const Task = props => (
@@ -24,10 +25,13 @@ export default class TasksList extends Component {
 
     this.deleteTask = this.deleteTask.bind(this)
 
-    this.state = {tasks: []};
+    this.state = {tasks: [], username: '', logged_in: false};
   }
 
   componentDidMount() {
+    this.setState({ username: cookie.load('username') })
+    this.setState({ logged_in: (typeof this.state.username === 'undefined') })
+
     axios.get('http://localhost:5000/tasks/')
       .then(response => {
         this.setState({ tasks: response.data })
@@ -55,7 +59,7 @@ export default class TasksList extends Component {
   render() {
     return (
       <div>
-        <h3>Project Tasks</h3>
+        <h3>Project Tasks - {this.state.logged_in ? this.state.username : "(logged out)"}</h3>
         <table className="table">
           <thead className="thead-light">
             <tr>

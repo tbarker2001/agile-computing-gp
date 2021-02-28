@@ -53,9 +53,14 @@ export default class CreateUser extends Component {
 
     console.log(user);
 
-    axios.post('http://localhost:5000/users/add', user)
-      .then(res => console.log(res.data));
-      window.location = '/signupcomplete';
+    // todo: find out why this request isn't setting cookie???
+    axios.post('http://localhost:5000/users/signup', user, {withCredentials: true})
+      .then(function(response){
+        console.log(response.data);
+        window.location = '/signupcomplete';
+      });
+      //todo: check if success
+      
   }
 
   render() {

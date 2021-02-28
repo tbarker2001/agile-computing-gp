@@ -24,7 +24,7 @@ function App() {
       <Route path="/edit/:id" component={EditTask} />
       <Route path="/create" component={CreateTask} />
       <Route path="/signin" component={SignIn} />
-      <Route path="/user" component={CreateUser} />
+      <Route path="/signup" component={CreateUser} />
       <Route path="/signincomplete" component={SignInComplete} />
       <Route path="/signupcomplete" component={SignUpComplete} />
       <Route path="/about" component={AboutUs} />
