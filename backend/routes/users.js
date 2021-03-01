@@ -87,7 +87,7 @@ router.route('/login').post((req, routeres) => {
       }
 
       console.log("User logged in!")
-      routeres.cookie('username', username, {maxAge: 10800}).json('User logged in!');
+      routeres.cookie('username', username).json('User logged in!');
     });
   });
 });

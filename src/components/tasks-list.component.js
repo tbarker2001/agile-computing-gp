@@ -25,9 +25,9 @@ export default class TasksList extends Component {
 
     this.deleteTask = this.deleteTask.bind(this)
 
-    var uname = Cookies.get("username")
-
-    this.state = {tasks: [], username: uname, logged_in: !(typeof uname === 'undefined')};
+    var username = Cookies.get("username");
+    var logged_in = (username !== undefined);
+    this.state = {tasks: [], username: username, logged_in: logged_in};
   }
 
   componentDidMount() {
