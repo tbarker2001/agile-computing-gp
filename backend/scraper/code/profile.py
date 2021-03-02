@@ -7,6 +7,8 @@ from backend.scraper.code.stack_overflow_scraper import StackOverflowProfile
 
 
 class UserProfile:
+    _stack_profile = None
+    _github_profile = None
 
     def __init__(self, user_details):
         "takes the user details dictionary and creates object which is composed of scraper objects"
@@ -15,10 +17,11 @@ class UserProfile:
         self._links = user_details["links"] if "links" in user_details else {}
 
         if len(self._links) > 0:
-            self._stack_profile = StackOverflowProfile(self._links["stack_profile"]) if "stack_profile" in user_details[
-                "links"] else None
-            self._github_profile = GithubProfile(self._links["github_profile"]) if "github_profile" in user_details[
-                "links"] else None
+            if "stack_profile" in user_details["links"]:
+                self._stack_profile = StackOverflowProfile(self._links["stack_profile"])
+
+            if "github_profile" in user_details["links"]:
+                self._github_profile = GithubProfile(self._links["github_profile"])
 
     def get_next_stack_tag(self):
         return generator_pop(self._stack_profile.get_top_tags()) if self._stack_profile is not None else None
