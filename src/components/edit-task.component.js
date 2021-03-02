@@ -53,17 +53,9 @@ export default class EditTask extends Component {
   componentDidMount() {
      axios.get('http://localhost:5000/tasks/'+this.props.match.params.id)
       .then(response => {
-        this.setState({
-          creator_username: response.data.creator_username,
-          title: response.data.title,
-          description: response.data.description,
-          state: response.data.state,
-          date: new Date(response.data.date),
-          assigned_users: response.data.assigned_users,
-          nlp_labels: response.data.nlp_labels,
-          users: response.data.users,
-          manually_added: response.data.manually_added
-        })   
+        this.setState(
+          response.data
+        )   
       })
       .catch(function (error) {
         console.log(error);

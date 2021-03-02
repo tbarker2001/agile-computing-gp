@@ -17,12 +17,12 @@ router.route('/add').post((req, res) => {
   const nlp_labels = [];
 
   const newUser = new User({
-    username,
-    password,
-    email,
-    assigned_tasks,
-    links,
-    nlp_labels
+    username: username,
+    password: password,
+    email: email,
+    assigned_tasks: assigned_tasks,
+    links: links,
+    nlp_labels: nlp_labels
   });
 
   newUser.save()
@@ -49,12 +49,12 @@ router.route('/signup').post((req, routeres) => {
     bcrypt.hash(password, salt, function (err, res) {
       const password = res;
       const newUser = new User({
-        username,
-        password,
-        email,
-        assigned_tasks,
-        links,
-        nlp_labels
+        username: username,
+        password: password,
+        email: email,
+        assigned_tasks: assigned_tasks,
+        links: links,
+        nlp_labels: nlp_labels
       });
     
       console.log("About to save user to dbs");
@@ -87,7 +87,7 @@ router.route('/login').post((req, routeres) => {
       }
 
       console.log("User logged in!")
-      routeres.cookie('username', username, {maxAge: 10800}).json('User logged in!');
+      routeres.cookie('username', username).json('User logged in!');
     });
   });
 });

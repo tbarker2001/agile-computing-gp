@@ -11,14 +11,42 @@ I recommend using Visual Studio Code to develop the site, and its built-in termi
 
 #### Setup instructions
 
-1. Extract the site contents :) and navigate to the folder in a terminal.
+Automatic:
 
-~~2. **npm install** to install site dependencies such as express, etc.
+1. Extract the site contents :)
+2. Run install.bat to install dependencies.
+3. Ready the python virtual environment: py -m venv "./agilecompenv"
+4. If on Windows, change `const python = virtualEnvDir + "/bin/python";` in nlp_interface.js to `const python = virtualEnvDir + "/Scripts/python";`
 
-~~3. **npm start** to start the nodejs web server. This will probably be hosted at localhost:3000. You can go to localhost:3000/taskslist to view the main page.
+Now you can run run.bat to run the frontend (react), backend (express), and database servers.
 
-~~4. In a seperate terminal pointing at the same folder, **mongodb --dbpath "./data"** to launch the mongodb database server.
+This hosts the frontend on localhost:3000, and backend on localhost:5000. The servers will refresh if you change any files.
+
+#### Database interaction
 
 If you want to interact with the database server through the command line (e.g. manually adding entries, altering schema, listing data), you can open a new terminal and simply use the command **mongo** to load a shell through which you can send commands.
 
-~~Additionally, if you'd prefer, you can run **nodemon task-management-site** instead of just npm start to automatically restart the web server whenever you make changes.
+Examples:
+```
+- use task-management-site
+      switch to database
+      
+- show tables
+      show all tables in database
+      
+- db.tasks.insert([{“title”: “Test Task”, “description”: “Lmao test”}])
+      insert record to table
+      NOTE: creates new table if doesn’t exist, inserts _id field automatically
+      
+- db.tasks.find().pretty()
+      print table contents
+```
+
+#### Common Errors
+```
+Frontend: nodemon.ps1 cannot be loaded because running scripts is disabled on this system
+      -> Fix: delete nodemon.ps1, kill all node background processes, retry
+          
+Frontend: 'react-scripts' is not recognised as an internal or external command
+      -> Fix: delete package-lock and node-modules, run npm clean cache, then npm install
+```

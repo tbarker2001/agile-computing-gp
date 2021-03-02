@@ -26,6 +26,11 @@ const userSchema = new Schema({
   assigned_tasks: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Task' }],
   links: [linkSchema],
   nlp_labels: [labelSchema],
+  is_admin: {
+    type: Boolean,
+    required: true,
+    default: false
+  }
 }, {
   timestamps: true,
 });

@@ -39,12 +39,13 @@ export default class SignIn extends Component {
 
     console.log(login);
 
-    axios.post('http://localhost:5000/users/login', login)
-      .then(res => console.log(res.data));
+    axios.post('http://localhost:5000/users/login', login, {withCredentials: true, credentials: 'include'})
+      .then(res => {
+        console.log(res.data);
+        window.location = '/';
+      });
 
     // todo: check whether login was successful
-
-    window.location = '/';
   }
 
   render() {
@@ -75,7 +76,7 @@ export default class SignIn extends Component {
                         <input type="submit" value="Log in" className="btn btn-primary" />
                         <br></br>
                         <br></br>
-                        <Link to="/user" className="nav-link">Not made an account with us yet?</Link>
+                        <Link to="/signup" className="nav-link">Not made an account with us yet?</Link>
                         </div>
                     </form>
                 </div>
