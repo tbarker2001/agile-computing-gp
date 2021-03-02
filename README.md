@@ -19,8 +19,10 @@ WINDOWS:
 2. Run install.bat to install dependencies.
 3. Ready the python virtual environment: py -m venv "./agilecompenv"
 4. Activate the python virtual environment (running agilecompenv/activate.bat in cmd prompt)
-5. Install the python requirements (py -m pip install -r backend/scraper/requirements.txt)
-6. If on Windows, change `const python = virtualEnvDir + "/bin/python";` in nlp_interface.js to `const python = virtualEnvDir + "/Scripts/python";`
+5. Install python scraper requirements: (py -m pip install -r backend/scraper/requirements.txt)
+6. Install python nlp model requirements: (py -m pip install -r backend/nlp_models/requirements.txt)
+7. Install python nlp model dev requirements: (py -m pip install -r backend/nlp_models/dev-requirements.txt)
+8. If on Windows, change `const python = virtualEnvDir + "/bin/python";` in nlp_interface.js to `const python = virtualEnvDir + "/Scripts/python";`
 
 Now you can run run.bat to run the frontend (react), backend (express), and database servers.
 
