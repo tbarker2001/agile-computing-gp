@@ -1,5 +1,5 @@
 const { spawn } = require('child_process');
-const modelsDir = __dirname + "/nlp_models/fastText_demo_model/";
+const modelsDir = __dirname + "/nlp_models/combined_model/";
 const scraperDir = __dirname + "/scraper/code/";
 const virtualEnvDir = __dirname + "/../agilecompenv"; // Replace with your venv or /usr
 const python = virtualEnvDir + "/Scripts/python";
@@ -44,7 +44,7 @@ let runPython = (dirName, scriptName, args) => new Promise((success, reject) => 
 /// Caller must catch any errors.
 let processProfile = (profileInfo) =>
   runPython(scraperDir, 'profile.py', profileInfo)
-  .then((scraperOutput) => runPython(modelsDir, "predictProfile.py", scraperOutput))
+  .then((scraperOutput) => runPython(modelsDir, "predict.py", scraperOutput))
 
 /// @function processTask
 /// Invokes the NLP model on the task description to assign labels
@@ -53,7 +53,7 @@ let processProfile = (profileInfo) =>
 ///  { "model_output": <model output>, "data_quality_score": <real> }
 /// Caller must catch any errors.
 let processTask = (taskInfo) =>
-  runPython(modelsDir, "predictTask.py", taskInfo)
+  runPython(modelsDir, "predict.py", taskInfo)
 
 /// @function overrideTaskLabels
 /// Adjusts the model output for the task with the creator's modifications
