@@ -4,8 +4,8 @@ import numpy as np
 import os
 
 modelDir = os.path.dirname(os.path.abspath(__file__))
-embeddingsFile = os.path.join(modelDir, '../fastText_demo_model/model.fasttextmodel')
-skillcloudVocabularyFile = os.path.join(modelDir, 'toy_skillcloud.txt')
+embeddingsFile = os.path.join(modelDir, '../fastText_demo_model/arxiv.fasttextvecs')
+skillcloudVocabularyFile = os.path.join(modelDir, '../fastText_demo_model/arxiv-skillcloud.txt')
 indexOutputFile = os.path.join(modelDir, 'skillcloud.index')
 
 if __name__ == "__main__":
