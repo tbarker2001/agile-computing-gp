@@ -15,7 +15,8 @@ Automatic:
 
 1. Extract the site contents :)
 2. Run install.bat to install dependencies.
-3. Run run.bat to run the frontend (react), backend (express), and database servers.
+3. Ready the python virtual environment: py -m venv "./agilecompenv"
+4. Run run.bat to run the frontend (react), backend (express), and database servers.
 
 This hosts the frontend on localhost:3000, and backend on localhost:5000. The servers will refresh if you change any files.
 
