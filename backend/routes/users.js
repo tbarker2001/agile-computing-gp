@@ -1,6 +1,7 @@
 const bcrypt = require('bcryptjs');
 const router = require('express').Router();
 let User = require('../models/user.model');
+const { processProfile} = require('../nlp_interface');
 
 router.route('/').get((req, res) => {
   User.find()
@@ -14,7 +15,7 @@ router.route('/add').post((req, res) => {
   const email = req.body.email;
   const assigned_tasks = [];
   const links = req.body.links;
-  const nlp_labels = [];
+  const nlp_labels = processProfile({username:username,links: links}); //links might need to be turned into json
 
   const newUser = new User({
     username: username,
