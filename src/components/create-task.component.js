@@ -158,32 +158,37 @@ export default class CreateTask extends Component {
   onSubmit(e) {
     e.preventDefault();
 
-    axios.get('http://localhost:5000/users/get_by_username/:' + this.state.manually_added)
+    var getManuallyAddedProfile = axios.get('http://localhost:5000/users/get_id_by_username/' + this.state.manually_added)
+    var getCreatorProfile = axios.get('http://localhost:5000/users/get_id_by_username/' + this.state.creator_username)
+
+    Promise.all([getManuallyAddedProfile, getCreatorProfile])
       .then(res => {
-        const manually_added = res;
+        const manually_added = res[0].data;
+	const creator_user = res[1].data;
 
-        axios.get('http://localhost:5000/users/get_by_username/:' + this.state.creator_username)
-        .then(res => {
-          const creator_user = res;
-
-          const task = {
-            creator_user: creator_user,
-            description: this.state.description,
-            title: this.state.title,
-            state: this.state.state,
-            date: this.state.date,
-            assigned_users: [manually_added],
-            nlp_labels: this.state.nlp_labels
-          }
+	const task = {
+	  creator_user: creator_user,
+	  description: this.state.description,
+	  title: this.state.title,
+	  state: this.state.state,
+	  date: this.state.date,
+	  assigned_users: [manually_added],
+	  nlp_labels: this.state.nlp_labels
+	}
+    
+	console.log("Task: ", task);
       
-          console.log(task);
-      
-          axios.post('http://localhost:5000/tasks/add', task)
-            .then(res => console.log(res.data));
-      
-          window.location = '/';
-        });
+        return axios.post('http://localhost:5000/tasks/add', task)
+      })
+      .then(res => {
+	console.log(res.data)
+	window.location = '/';
+      })
+      .catch(err => {
+	console.error(err)
+	// TODO display error to user
       });
+      
   }
 
   render() {
