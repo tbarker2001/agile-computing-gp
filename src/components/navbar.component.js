@@ -24,7 +24,7 @@ export default class Navbar extends Component {
             logged_in
             ? [
                 <li className="navbar-item">
-                  <a href="#" onClick={() => {
+                  <a href="#" className="nav-link" onClick={() => {
                     Cookies.remove("username");
                     window.location = '/';
                     }}>Log Out</a>
