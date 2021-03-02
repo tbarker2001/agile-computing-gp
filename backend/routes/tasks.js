@@ -8,27 +8,16 @@ router.route('/').get((req, res) => {
 });
 
 router.route('/add').post((req, res) => {
-  const title = req.body.title;
-  const description = req.body.description;
-  const state = req.body.state;
-
-  const creator_user = req.body.creator_user;
-  const assigned_users = [];
-  const date = Date.parse(req.body.date);
-  const nlp_labels = req.body.nlp_labels;
-  const manual_deleted_labels = [];
-  const manual_added_labels = [];
-
   const newTask = new Task({
-    title,
-    description,
-    state,
-    creator_user,
-    assigned_users,
-    date,
-    nlp_labels,
-    manual_deleted_labels,
-    manual_added_labels
+    title:                   req.body.title,
+    description:             req.body.description,
+    state:                   req.body.state,
+    creator_user:            req.body.creator_user,
+    assigned_users:          req.body.assigned_users,
+    date:                    Date.parse(req.body.date),
+    nlp_labels:              req.body.nlp_labels,
+    manual_deleted_labels:   [],
+    manual_added_labels:     []
   });
 
   newTask.save()
@@ -56,11 +45,7 @@ router.route('/update/:id').post((req, res) => {
       task.state = req.body.state;
     
       task.creator_user = req.body.creator_user;
-      task.assigned_users = [];
       task.date = Date.parse(req.body.date);
-      task.nlp_labels = [];
-      task.manual_deleted_labels = [];
-      task.manual_added_labels = [];
 
       task.save()
         .then(() => res.json('Task updated!'))

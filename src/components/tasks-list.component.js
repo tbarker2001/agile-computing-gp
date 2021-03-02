@@ -41,8 +41,8 @@ export default class TasksList extends Component {
 
     this.deleteTask = this.deleteTask.bind(this)
 
+    var username = Cookies.get("username");
     var logged_in = (username !== undefined);
-        var username = Cookies.get("username");
 
     this.state = {all_tasks: [], assigned_tasks: [], open_tasks: [], closed_tasks: [], 
                   username: username, user_id: '', logged_in: logged_in, scores: {}}
@@ -50,9 +50,7 @@ export default class TasksList extends Component {
   }
 
 
-
   componentDidMount() {
-
     console.log(`Set username to: ${this.state.username}`)
     console.log(`Set logged_in to: ${this.state.logged_in}`)
 
