@@ -2,7 +2,7 @@ const { spawn } = require('child_process');
 const modelsDir = __dirname + "/nlp_models/fastText_demo_model/";
 const scraperDir = __dirname + "/scraper/code/";
 const virtualEnvDir = __dirname + "/../agilecompenv"; // Replace with your venv or /usr
-const python = virtualEnvDir + "/bin/python";
+const python = virtualEnvDir + "/Scripts/python";
 
 let runPython = (dirName, scriptName, args) => new Promise((success, reject) => {
   const script = dirName + scriptName;

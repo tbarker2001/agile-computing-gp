@@ -1,24 +1,26 @@
 import json
 import sys
 
-from backend.scraper.code.github_scraper import GithubProfile
-from backend.scraper.code.parsing_methods import generator_pop
-from backend.scraper.code.stack_overflow_scraper import StackOverflowProfile
-
+from github_scraper import GithubProfile
+from parsing_methods import generator_pop
+from stack_overflow_scraper import StackOverflowProfile
 
 class UserProfile:
-
     def __init__(self, user_details):
         "takes the user details dictionary and creates object which is composed of scraper objects"
 
-        self._username = user_details["username"]
+        self._username = user_details.setdefault("username", "")
         self._links = user_details["links"] if "links" in user_details else {}
+
+        self._stack_profile = None
+        self._github_profile = None
 
         if len(self._links) > 0:
             self._stack_profile = StackOverflowProfile(self._links["stack_profile"]) if "stack_profile" in user_details[
                 "links"] else None
             self._github_profile = GithubProfile(self._links["github_profile"]) if "github_profile" in user_details[
                 "links"] else None
+            
 
     def get_next_stack_tag(self):
         return generator_pop(self._stack_profile.get_top_tags()) if self._stack_profile is not None else None
@@ -44,7 +46,17 @@ class UserProfile:
 if __name__ == "__main__":
     input_json = json.loads(sys.argv[1])
     profile = UserProfile(input_json)
-    output = {
-        'text': profile.get_next_asked_stack_post().getPost()
-    }
+    
+    nasp = profile.get_next_asked_stack_post()
+
+    # Was throwing a "nonetype has no attribute getpost" error
+    if type(nasp) != type(None):
+        output = {
+            'text': profile.get_next_asked_stack_post().getPost()
+        }
+    else:
+        output = {
+            'text': ""
+        }
+    
     sys.stdout.write(json.dumps(output))

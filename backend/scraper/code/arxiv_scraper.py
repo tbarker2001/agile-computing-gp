@@ -5,7 +5,7 @@ import re
 import nltk
 import time
 
-from backend.scraper.code import parsing_methods
+import parsing_methods
 
 nltk.download('punkt')
 nltk.download('averaged_perceptron_tagger')

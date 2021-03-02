@@ -65,6 +65,7 @@ export default class TasksList extends Component {
     if (this.state.logged_in){                                 // If logged in, store user_id in this.state
       axios.get('http://localhost:5000/users/')            
         .then(response => {
+          // Todo: index username, or store user_id in cookie instead
           response.data.forEach(function (user) {
             if (user.username == this.state.username) {  
               this.setState({ user_id: user._id });
@@ -79,7 +80,6 @@ export default class TasksList extends Component {
   }
 
 
-
   deleteTask(id) {
     axios.delete('http://localhost:5000/tasks/'+id)
       .then(response => { console.log(response.data)});
@@ -88,7 +88,6 @@ export default class TasksList extends Component {
       all_tasks: this.state.all_tasks.filter(el => el._id !== id)
     })
   }
-  
 
 
   taskList() {

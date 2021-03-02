@@ -1,10 +1,10 @@
 import React, { Component } from 'react';
 import axios from 'axios';
+import Cookies from 'js-cookie';
 import { Link } from 'react-router-dom';
 import DatePicker from 'react-datepicker';
 import "react-datepicker/dist/react-datepicker.css";
 import "../App.css";
-
 
 const Label = props => (
   <tr>
@@ -44,47 +44,32 @@ export default class CreateTask extends Component {
   constructor(props) {
     super(props);
 
-    this.onChangeCreatorUsername = this.onChangeCreatorUsername.bind(this);
     this.onChangeDescription = this.onChangeDescription.bind(this);
     this.onChangeTitle = this.onChangeTitle.bind(this);   
     this.onChangeState = this.onChangeState.bind(this);
     this.onChangeDate = this.onChangeDate.bind(this);
     this.onSubmit = this.onSubmit.bind(this);
+    this.onChangeManual = this.onChangeManual.bind(this);
+
+    var username = Cookies.get("username");
+    var logged_in = (username !== undefined);
 
     this.state = {
-      creator_username: '',
-      task_id: 'hardcoded_task_id', // TODO where do we assign id's to tasks
+      creator_username: username,
       title: '',
-      assigned_users: '',
+      assigned_users: [],
       description: '',
       state: '',
       date: new Date(),
       model_output: {},
       nlp_labels: [],
-      users: [],
+      scored_users: [],
       manually_added: ''
     }
   }
 
   componentDidMount() {
-    axios.get('http://localhost:5000/users/')
-      .then(response => {
-        if (response.data.length > 0) {
-          this.setState({
-  //            users: response.data.map(user => user.username),
-            creator_username: response.data[0].username
-          })
-        }
-      })
-      .catch((error) => {
-        console.log(error);
-      })
-  }
 
-  onChangeCreatorUsername(e) {
-    this.setState({
-      creator_username: e.target.value
-    })
   }
 
   onChangeDescription(e) {
@@ -117,7 +102,6 @@ export default class CreateTask extends Component {
     })
   }
 
-
   findLabels(){
     // TODO: take in task description text, store labels from this in state.labels
     let taskInfo = {
@@ -149,7 +133,7 @@ export default class CreateTask extends Component {
     axios.post('http://localhost:5000/nlptest/topUsersForTask', taskInfo)
       .then(response => {
 	    this.setState({
-	      users: Object.keys(response.data).map(userId => 
+	      scored_users: Object.keys(response.data).map(userId => 
             <User user={{
 	          username: userId,
 	          match_score: response.data[userId].score
@@ -168,30 +152,38 @@ export default class CreateTask extends Component {
   //    return this.state.users.map(currentuser => {
   //        return <User user={currentuser} key={currentuser._id}/>
   //    })
-    return this.state.users;      // TODO: same as labelList above, but for putting recommended users into its table from this.state.users
+    return this.state.scored_users;      // TODO: same as labelList above, but for putting recommended users into its table from this.state.users
   }
 
   onSubmit(e) {
     e.preventDefault();
 
-    const usersToAdd = this.state.users // TODO: concatted with manually added users (after checking for validity)
+    axios.get('http://localhost:5000/users/get_by_username/:' + this.state.manually_added)
+      .then(res => {
+        const manually_added = res;
 
-    const task = {
-      creator_username: this.state.creator_username,
-      description: this.state.description,
-      title: this.state.title,
-      state: this.state.state,
-      date: this.state.date,
-      users: usersToAdd,
-      nlp_labels: this.state.nlp_labels
-    }
+        axios.get('http://localhost:5000/users/get_by_username/:' + this.state.creator_username)
+        .then(res => {
+          const creator_user = res;
 
-    console.log(task);
-
-    axios.post('http://localhost:5000/tasks/add', task)
-      .then(res => console.log(res.data));
-
-    window.location = '/';
+          const task = {
+            creator_user: creator_user,
+            description: this.state.description,
+            title: this.state.title,
+            state: this.state.state,
+            date: this.state.date,
+            assigned_users: [manually_added],
+            nlp_labels: this.state.nlp_labels
+          }
+      
+          console.log(task);
+      
+          axios.post('http://localhost:5000/tasks/add', task)
+            .then(res => console.log(res.data));
+      
+          window.location = '/';
+        });
+      });
   }
 
   render() {
@@ -202,23 +194,6 @@ export default class CreateTask extends Component {
           <div className="personalBoxView">
             <article>
               <form onSubmit={this.onSubmit}>
-                <div className="form-group"> 
-                  <label>Creator Username: </label>
-                  <select ref="userInput"
-                      required
-                      className="form-control"
-                      value={this.state.creator_username}
-                      onChange={this.onChangeCreatorUsername}>
-                      {
-                        this.state.users.map(function(user) {
-                          return <option 
-                            key={user}
-                            value={user}>{user}
-                            </option>;
-                        })
-                      }
-                  </select>
-                </div>
                 <div className="form-group">
                   <label>Title: </label>
                   <input 
