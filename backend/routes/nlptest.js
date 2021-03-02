@@ -1,5 +1,5 @@
 var router = require('express').Router();
-const { processTask, calculateMatchScores } = require('../nlp_interface');
+const { processProfile, processTask, calculateMatchScores } = require('../nlp_interface');
 
 router.post('/processTask', (req, res, next) => {
   processTask({
@@ -9,6 +9,26 @@ router.post('/processTask', (req, res, next) => {
       res.send(labels)
     })
     .catch(console.error);
+})
+
+router.post('/processProfile', (req, res, next) => {        // simply a copy of /processTask above
+  processProfile({                                          
+    text: req.body.text
+  })
+    .then(labels => {
+      res.send(labels)
+    })
+    .catch(console.error);
+})
+
+router.post('/topTasksForUser', (req, res, next) => {
+
+  const labelled_tasks = req.body.labelled_tasks;
+  const labelled_user = req.body.labelled_user;
+
+  calculateMatchScores(labelled_tasks, labelled_user)
+    .then(result => res.send(result.account_set[userId]))
+    .catch(console.error)
 })
 
 router.post('/topUsersForTask', (req, res, next) => {

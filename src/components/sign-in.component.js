@@ -75,7 +75,7 @@ export default class SignIn extends Component {
                         <input type="submit" value="Log in" className="btn btn-primary" />
                         <br></br>
                         <br></br>
-                        <Link to="/user" className="nav-link">Not made an account with us yet?</Link>
+                        <Link to="/signup" className="nav-link">Not made an account with us yet?</Link>
                         </div>
                     </form>
                 </div>

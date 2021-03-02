@@ -71,7 +71,7 @@ export default class CreateTask extends Component {
       .then(response => {
         if (response.data.length > 0) {
           this.setState({
-//            users: response.data.map(user => user.username),
+  //            users: response.data.map(user => user.username),
             creator_username: response.data[0].username
           })
         }
@@ -118,7 +118,6 @@ export default class CreateTask extends Component {
   }
 
 
-
   findLabels(){
     // TODO: take in task description text, store labels from this in state.labels
     let taskInfo = {
@@ -126,19 +125,20 @@ export default class CreateTask extends Component {
     };
     axios.post('http://localhost:5000/nlptest/processTask', taskInfo)
       .then(response => {
-	const modelOutput = response.data.model_output;
-	this.setState({
-	  model_output: modelOutput
-	});
-	const labels = modelOutput.map(x => <Label label={{
-	    string: x.label,
-	    score: x.probability
-	  }}/>);
-	this.setState({
-	  nlp_labels: labels
-	})
+	    const modelOutput = response.data.model_output;
+	    this.setState({
+	      model_output: modelOutput
+	    });
+	    const labels = modelOutput.map(x => <Label label={{
+	      string: x.label,
+	      score: x.probability
+	    }}/>);
+	    this.setState({
+          nlp_labels: labels
+        })
       })
   }
+
 
   findUsers(){
     // TODO: take in this.state.labels, match with users and output users with their scores, stored in this.state.users
@@ -148,12 +148,13 @@ export default class CreateTask extends Component {
     };
     axios.post('http://localhost:5000/nlptest/topUsersForTask', taskInfo)
       .then(response => {
-	this.setState({
-	  users: Object.keys(response.data).map(userId => <User user={{
-	    username: userId,
-	    match_score: response.data[userId].score
-	  }}/>)
-	});
+	    this.setState({
+	      users: Object.keys(response.data).map(userId => 
+            <User user={{
+	          username: userId,
+	          match_score: response.data[userId].score
+	        }}/>)
+	    });
       })
   }
 
@@ -164,9 +165,9 @@ export default class CreateTask extends Component {
 
   currentUsersList() {
     
-//    return this.state.users.map(currentuser => {
-//        return <User user={currentuser} key={currentuser._id}/>
-//    })
+  //    return this.state.users.map(currentuser => {
+  //        return <User user={currentuser} key={currentuser._id}/>
+  //    })
     return this.state.users;      // TODO: same as labelList above, but for putting recommended users into its table from this.state.users
   }
 

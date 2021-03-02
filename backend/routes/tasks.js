@@ -15,7 +15,7 @@ router.route('/add').post((req, res) => {
   const creator_user = req.body.creator_user;
   const assigned_users = [];
   const date = Date.parse(req.body.date);
-  const nlp_labels = [];
+  const nlp_labels = req.body.nlp_labels;
   const manual_deleted_labels = [];
   const manual_added_labels = [];
 
