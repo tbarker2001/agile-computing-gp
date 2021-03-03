@@ -1,34 +1,34 @@
-const {spawn} = require('child_process');
+const { spawn } = require('child_process');
 const modelsDir = __dirname + "/nlp_models/combined_model/";
 const scraperDir = __dirname + "/scraper/code/";
 const virtualEnvDir = __dirname + "/../agilecompenv"; // Replace with your venv or /usr
 const python = virtualEnvDir + "/Scripts/python";
 
 let runPython = (dirName, scriptName, args) => new Promise((success, reject) => {
-    const script = dirName + scriptName;
-    const pyArgs = [script, JSON.stringify(args)]
-    const pyprog = spawn(python, pyArgs);
-    let result = "";
-    let resultError = "";
+  const script = dirName + scriptName;
+  const pyArgs = [script, JSON.stringify(args)]
+  const pyprog = spawn(python, pyArgs);
+  let result = "";
+  let resultError = "";
 
-    pyprog.stdout.on('data', (data) => {
-        result += data.toString();
-    });
+  pyprog.stdout.on('data', (data) => {
+    result += data.toString();
+  });
 
-    pyprog.stderr.on('data', (data) => {
-        resultError += data.toString();
-    });
+  pyprog.stderr.on('data', (data) => {
+    resultError += data.toString();
+  });
 
-    pyprog.stdout.on("end", () => {
-        if (resultError == "") {
-            success(JSON.parse(result));
-        } else {
-            console.error(`Python error, you can reproduce the error with: \n${python} ${script} ${pyArgs.join(" ")}`);
-            const error = new Error(resultError);
-            console.error(error);
-            reject(resultError);
-        }
-    })
+  pyprog.stdout.on("end", () => {
+    if (resultError == "") {
+      success(JSON.parse(result));
+    } else {
+      console.error(`Python error, you can reproduce the error with: \n${python} ${script} ${pyArgs.join(" ")}`);
+      const error = new Error(resultError);
+      console.error(error);
+      reject(resultError);
+    }
+  })
 })
 
 
@@ -43,8 +43,8 @@ let runPython = (dirName, scriptName, args) => new Promise((success, reject) => 
 ///  { "model_output": <model output>, "data_quality_score": <real> }
 /// Caller must catch any errors.
 let processProfile = (profileInfo) =>
-    runPython(scraperDir, 'profile.py', profileInfo)
-        .then((scraperOutput) => runPython(modelsDir, "predict.py", scraperOutput))
+  runPython(scraperDir, 'profile.py', profileInfo)
+  .then((scraperOutput) => runPython(modelsDir, "predict.py", scraperOutput))
 
 /// @function processTask
 /// Invokes the NLP model on the task description to assign labels
@@ -53,7 +53,7 @@ let processProfile = (profileInfo) =>
 ///  { "model_output": <model output>, "data_quality_score": <real> }
 /// Caller must catch any errors.
 let processTask = (taskInfo) =>
-    runPython(modelsDir, "predict.py", taskInfo)
+  runPython(modelsDir, "predict.py", taskInfo)
 
 /// @function overrideTaskLabels
 /// Adjusts the model output for the task with the creator's modifications
@@ -64,7 +64,7 @@ let processTask = (taskInfo) =>
 ///  { "model_output": <model output>, "data_quality_score": <real> }
 /// Caller must catch any errors.
 let overrideTaskLabels = (overriddenTaskInfo) =>
-    runPython(modelsDir, "overrideTaskLabels.py", overriddenTaskInfo)
+  runPython(modelsDir, "overrideTaskLabels.py", overriddenTaskInfo)
 
 /// @function calculateMatchScores
 /// Invokes the task to profile matching algorithm to calculate numeric
@@ -78,9 +78,9 @@ let overrideTaskLabels = (overriddenTaskInfo) =>
 ///    "task_set": {<task_id>: {<account_id>: {"score": <real>}}} }
 /// Caller must catch any errors.
 let calculateMatchScores = (tasks, profiles) =>
-    runPython(modelsDir, "match.py", {
-        "account_set": profiles,
-        "task_set": tasks
-    })
+  runPython(modelsDir, "match.py", {
+    "account_set": profiles,
+    "task_set": tasks
+  })
 
 module.exports = {processProfile, processTask, overrideTaskLabels, calculateMatchScores};
