@@ -8,22 +8,25 @@ I recommend using Visual Studio Code to develop the site, and its built-in termi
 
 - Install mongodb - https://www.mongodb.com/try/download/community
 - and node - https://nodejs.org/en/download/
+- and python 3 - https://www.python.org/downloads/
+- and anaconda - https://www.anaconda.com/products/individual#windows
 
 #### Setup instructions
 
-Automatic:
+Automatic ish:
 
 WINDOWS:
-
+```
 1. Extract the site contents :)
-2. Run install.bat to install dependencies.
-3. Ready the python virtual environment: py -m venv "./agilecompenv"
-4. Activate the python virtual environment (running agilecompenv/activate.bat in cmd prompt)
-5. Install python scraper requirements: (py -m pip install -r backend/scraper/requirements.txt)
-6. Install python nlp model requirements: (py -m pip install -r backend/nlp_models/requirements.txt)
-7. Install python nlp model dev requirements: (py -m pip install -r backend/nlp_models/dev-requirements.txt)
-8. If on Windows, change `const python = virtualEnvDir + "/bin/python";` in nlp_interface.js to `const python = virtualEnvDir + "/Scripts/python";`
-
+2. Run install.bat to install npm dependencies.
+3. Create the python virtual environment in ./agilecompenv: conda create -n agilecompenv anaconda
+4. Activate the python virtual environment: conda activate
+5. Install python scraper requirements in ./backend/scraper: conda install --file requirements.txt
+   NOTE: if packages can't be found by installer, try first running: conda config --append channels conda-forge
+   If they still can't be found, install with pip instead, e.g.: py -m pip install fasttext
+6. Install python nlp model requirements in ./backend/nlp_models: conda install --file requirements.txt
+7. If on Windows, change `const python = virtualEnvDir + "/bin/python";` in nlp_interface.js to `const python = virtualEnvDir + "/Scripts/python";`
+```
 Now you can run run.bat to run the frontend (react), backend (express), and database servers.
 
 This hosts the frontend on localhost:3000, and backend on localhost:5000. The servers will refresh if you change any files.
