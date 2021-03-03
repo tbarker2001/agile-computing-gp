@@ -47,27 +47,43 @@ export default class CreateUser extends Component {
 
     onChangeStackOverflowProfile(e) {
 //        this.state.links.push(new linkSchema({link_type: 'stack_profile', url: e.target.value}))
+	let newLinks = []
+	if (e.target.value !== "") {
+	    newLinks.push({
+		link_type: 'stack_profile',
+		url: e.target.value
+	    });
+	}
+	if (this.state.githubProfileLink !== "") {
+	    newLinks.push({
+		link_type: 'github_profile',
+		url: this.state.githubProfileLink
+	    });
+	}
 	this.setState({
-	    links: [
-		...this.state.links,
-		{
-		    link_type: 'stack_profile',
-		    url: e.target.value
-		}
-	    ]
+	    stackOverflowProfileLink: e.target.value,
+	    links: newLinks
 	})
     }
 
     onChangeGithubProfile(e) {
 //        this.state.links.push(new linkSchema({link_type: 'github_profile', url: e.target.value}))
+	let newLinks = []
+	if (e.target.value !== "") {
+	    newLinks.push({
+		link_type: 'github_profile',
+		url: e.target.value
+	    });
+	}
+	if (this.state.stackOverflowProfileLink !== "") {
+	    newLinks.push({
+		link_type: 'stack_profile',
+		url: this.state.stackOverflowProfileLink
+	    });
+	}
 	this.setState({
-	    links: [
-		...this.state.links,
-		{
-		    link_type: 'github_profile',
-		    url: e.target.value
-		}
-	    ]
+	    githubProfileLink: e.target.value,
+	    links: newLinks
 	})
     }
 

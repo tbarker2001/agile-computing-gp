@@ -2,8 +2,8 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
 const labelSchema = new Schema({
-    text    : String,
-    weight  : Number 
+    label	: String,
+    probability	: Number 
 });
 
 module.exports = labelSchema;
