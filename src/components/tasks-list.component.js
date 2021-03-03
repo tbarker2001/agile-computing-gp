@@ -90,51 +90,36 @@ export default class TasksList extends Component {
 
   deleteTask(id) {
     axios.delete('http://localhost:5000/tasks/'+id)
-      .then(response => { console.log(response.data)});
+      .then(response => {
+	console.log(response.data)
+	this.setState({
+	  all_tasks: this.state.all_tasks.filter(el => el.props.task._id !== id),
+	  assigned_tasks: this.state.assigned_tasks.filter(el => el.props.task._id !== id),
+	  open_tasks: this.state.open_tasks.filter(el => el.props.task._id !== id),
+	  closed_tasks: this.state.closed_tasks.filter(el => el.props.task._id !== id)
+	})
+      })
+      .catch(err => console.error("Couldn't delete task: ", err));
 
-    this.setState({
-      all_tasks: this.state.all_tasks.filter(el => el.props.task._id !== id),
-      assigned_tasks: this.state.assigned_tasks.filter(el => el.props.task._id !== id),
-      open_tasks: this.state.open_tasks.filter(el => el.props.task._id !== id),
-      closed_tasks: this.state.closed_tasks.filter(el => el.props.task._id !== id)
-    })
   }
 
 
-/*
-  taskList() {
-    // TODO delete this function
-    return this.state.all_tasks.map(currenttask => {
-      return <Task task={currenttask} deleteTask={this.deleteTask} key={currenttask._id}/>;
-    })
-  }
-*/
 
-
-  getAssignedTaskList() {                                      //   go through all Tasks in all_tasks,                          
+  getAssignedTaskList() {
     const username = this.state.username;
-    /*
-    let addAssignedTask = function(currenttask) {
-      this.setState({
-	assigned_tasks: [...this.state.assigned_tasks, currenttask]
-      });
-    };
-    addAssignedTask = addAssignedTask.bind(this);
-    this.state.all_tasks.forEach(function (currenttask) {   //          every one which contains an assigned_user with matching username  
-        currenttask.assigned_users.forEach(function (user) { //          must be added to assigned_tasks, then returned as a
-            if (user.username == username  && currenttask.state.text !== "CLOSED"){
-	      addAssignedTask(currenttask);
-            }
-        })                        
-    })
-    return this.state.assigned_tasks.map(currenttask => {
-      return <Task task={currenttask} deleteTask={this.deleteTask} key={currenttask._id}/>;
-    })
-    */
     this.setState({
       assigned_tasks: this.state.all_tasks.filter(el =>
 	el.props.task.state.text !== "CLOSED" &&
-	el.props.task.assigned_users.map(user => user.username).includes(username))
+	el.props.task.assigned_users
+	  .filter(user => {
+	    if (user === null) {
+	      console.error("Null assigned user in task:", el.props.task);
+	      return false;
+	    }
+	    return true;
+	  })
+	  .map(user => user.username)
+	  .includes(username))
     })
   }
 

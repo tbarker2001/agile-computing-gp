@@ -6,15 +6,15 @@ export default class AboutUs extends Component{
 	render () {
 		return (
 
-			<div class = "aboutcontainer">
-				<div class="top">
+			<div className="aboutcontainer">
+				<div className="top">
 				<br></br>
 				<br></br>
-					<h2 class="aboutus">
+					<h2 className="aboutus">
 						About Us
 					</h2>
 				</div>
-				<div class="bottom">
+				<div className="bottom">
 					<br></br>
 					<br></br>
 					<p>
@@ -31,7 +31,7 @@ export default class AboutUs extends Component{
 					</p>
 					<br></br>
 					<br></br>
-					<p fontsize="10em">
+					<p fontSize="10em">
 						Privacy statement etc
 					</p>
 				</div>
