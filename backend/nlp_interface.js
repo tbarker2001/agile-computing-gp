@@ -3,6 +3,7 @@ const modelsDir = __dirname + "/nlp_models/combined_model/";
 const scraperDir = __dirname + "/scraper/code/";
 const virtualEnvDir = __dirname + "/../agilecompenv"; // Replace with your venv or /usr
 const python = virtualEnvDir + "/Scripts/python";
+
 let runPython = (dirName, scriptName, args) => new Promise((success, reject) => {
     const script = dirName + scriptName;
     const pyArgs = [script, JSON.stringify(args)]

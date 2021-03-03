@@ -1,28 +1,50 @@
 const router = require('express').Router();
+let ObjectID = require('mongodb').ObjectID;
+let State = require('../models/state.model');
 let Task = require('../models/task.model');
+let User = require('../models/user.model');
 
 router.route('/').get((req, res) => {
   Task.find()
+    .then(tasks => Promise.all(
+      tasks.map(task =>
+	Promise.all(
+	  task.assigned_users.map(user => User.findById(user))
+	)
+	.then(users => {
+	  task.assigned_users = users;
+	  console.log(task.state);
+	  return State.findById(task.state).then(state => {
+	    console.log("blah", state);
+	    task.state = state;
+	    return task;
+	  });
+	}))
+    ))
     .then(tasks => res.json(tasks))
+    .catch(err => {console.error(err); return err;})
     .catch(err => res.status(400).json('Error: ' + err));
 });
 
 router.route('/add').post((req, res) => {
-  const newTask = new Task({
-    title:                   req.body.title,
-    description:             req.body.description,
-    state:                   req.body.state,
-    creator_user:            req.body.creator_user,
-    assigned_users:          req.body.assigned_users,
-    date:                    Date.parse(req.body.date),
-    nlp_labels:              req.body.nlp_labels,
-    manual_deleted_labels:   [],
-    manual_added_labels:     []
-  });
-
-  newTask.save()
-  .then(() => res.json('Task added!'))
-  .catch(err => res.status(400).json('Error: ' + err));
+  State.findOne({text: req.body.state})
+    .then(state => new Task({
+      title:                   req.body.title,
+      description:             req.body.description,
+      state:                   state._id,
+      creator_user:            req.body.creator_user,
+      assigned_users:          req.body.assigned_users,
+      date:                    Date.parse(req.body.date),
+      nlp_labels:              req.body.nlp_labels,
+      manual_deleted_labels:   [],
+      manual_added_labels:     []
+    }))
+    .then(newTask => newTask.save())
+    .then(() => res.json('Task added!'))
+    .catch(err => {
+      console.error(err)
+      res.status(400).json('Error: ' + err)
+    })
 });
 
 router.route('/:id').get((req, res) => {
