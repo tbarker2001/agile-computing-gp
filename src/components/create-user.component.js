@@ -1,7 +1,7 @@
 import React, {Component} from 'react';
 import axios from 'axios';
 
-let linkSchema = require('./link.schema.js');
+//let linkSchema = require('./link.schema');
 
 export default class CreateUser extends Component {
     constructor(props) {
@@ -46,11 +46,29 @@ export default class CreateUser extends Component {
     }
 
     onChangeStackOverflowProfile(e) {
-        this.state.links.push(new linkSchema({link_type: 'stack_profile', url: e.target.value}))
+//        this.state.links.push(new linkSchema({link_type: 'stack_profile', url: e.target.value}))
+	this.setState({
+	    links: [
+		...this.state.links,
+		{
+		    link_type: 'stack_profile',
+		    url: e.target.value
+		}
+	    ]
+	})
     }
 
     onChangeGithubProfile(e) {
-        this.state.links.push(new linkSchema({link_type: 'github_profile', url: e.target.value}))
+//        this.state.links.push(new linkSchema({link_type: 'github_profile', url: e.target.value}))
+	this.setState({
+	    links: [
+		...this.state.links,
+		{
+		    link_type: 'github_profile',
+		    url: e.target.value
+		}
+	    ]
+	})
     }
 
 
@@ -73,7 +91,9 @@ export default class CreateUser extends Component {
             .then(function (response) {
                 console.log(response.data);
                 window.location = '/signupcomplete';
-            });
+            })
+	    .catch(console.error);
+	    
         //todo: check if success
 
     }
