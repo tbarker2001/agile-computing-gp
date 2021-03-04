@@ -1,4 +1,5 @@
 var router = require('express').Router();
+var User = require('../models/user.model');
 const { processProfile, processTask, calculateMatchScores } = require('../nlp_interface');
 
 router.post('/processTask', (req, res, next) => {
@@ -32,17 +33,17 @@ router.post('/topTasksForUser', (req, res, next) => {
 })
 
 router.post('/topUsersForTask', (req, res, next) => {
-  const taskId = req.body.task_id;
-  const taskModelOutput = req.body.task_model_output;
-  let input = {};
-  input[taskId] = taskModelOutput;
-  // TODO make query to db
-  const hardcodedUserOutputs = {
-    david: [{label: 'git', probability: 0.8}],
-    bob: [{label: 'git', probability: 0.3}, {label: 'css', probability: 1}]
+  const tasks = {
+    thistask: req.body.task_model_output
   };
-  calculateMatchScores(input, hardcodedUserOutputs)
-    .then(result => res.send(result.task_set[taskId]))
+
+  User.find()
+    .then(users => Object.fromEntries(users.map(user => [
+	user.username,
+	user.nlp_labels
+    ])))
+    .then(users => calculateMatchScores(tasks, users))
+    .then(result => res.send(result.task_set.thistask))
     .catch(console.error)
 })
 

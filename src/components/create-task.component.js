@@ -127,7 +127,6 @@ export default class CreateTask extends Component {
   findUsers(){
     // TODO: take in this.state.labels, match with users and output users with their scores, stored in this.state.users
     const taskInfo = {
-      task_id: this.state.task_id,
       task_model_output: this.state.model_output
     };
     axios.post('http://localhost:5000/nlptest/topUsersForTask', taskInfo)
