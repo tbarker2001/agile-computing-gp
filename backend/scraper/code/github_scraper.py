@@ -4,7 +4,7 @@ from urllib.request import urlopen
 import requests
 from bs4 import BeautifulSoup
 
-from backend.scraper.code.parsing_methods import cleanLines, tokenize_title, generator_pop
+from parsing_methods import cleanLines, tokenize_title, generator_pop
 
 
 class GithubIssue:

@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
+let State = require('./models/state.model');
 
 require('dotenv').config();
 
@@ -28,6 +29,26 @@ const nlpTestRouter = require('./routes/nlptest');
 app.use('/tasks', tasksRouter);
 app.use('/users', usersRouter);
 app.use('/nlptest', nlpTestRouter);
+
+// If no states are saved, save them to database
+State.find()
+  .then(states => {
+    if (states.length == 0) {
+      const open = new State({
+	text: "OPEN",
+	colour: "green"
+      });
+      const closed = new State({
+	text: "CLOSED",
+	colour: "red"
+      });
+      Promise.all([
+	open.save(),
+	closed.save()
+      ]).catch(console.error);
+    }
+  })
+  .catch(console.error);
 
 app.listen(port, () => {
     console.log(`Server is running on port: ${port}`);

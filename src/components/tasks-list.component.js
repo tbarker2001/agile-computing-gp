@@ -8,7 +8,7 @@ const Task = props => (
     <td>{props.task.creator_username}</td>
     <td>{props.task.title}</td>
     <td>{props.task.description}</td>
-    <td>{props.task.state}</td>
+    <td>{props.task.state.text}</td>
     <td>{props.task.date.substring(0,10)}</td>
     <td>
       <Link to={"#"}>view (1)</Link> 
@@ -44,8 +44,16 @@ export default class TasksList extends Component {
     var username = Cookies.get("username");
     var logged_in = (username !== undefined);
 
-    this.state = {all_tasks: [], assigned_tasks: [], open_tasks: [], closed_tasks: [], 
-                  username: username, user_id: '', logged_in: logged_in, scores: {}}
+    this.state = {
+      all_tasks: [],
+      assigned_tasks: [],
+      open_tasks: [],
+      closed_tasks: [],
+      username: username,
+      user_id: '',
+      logged_in: logged_in,
+      scores: {}
+    }
 
   }
 
@@ -54,67 +62,78 @@ export default class TasksList extends Component {
     console.log(`Set username to: ${this.state.username}`)
     console.log(`Set logged_in to: ${this.state.logged_in}`)
 
+    let set_state = this.setState.bind(this);
+
     axios.get('http://localhost:5000/tasks/')
       .then(response => {
-        this.setState({ all_tasks: response.data})
+        set_state({
+	  all_tasks: response.data.map(task =>
+	    <Task task={task} deleteTask={this.deleteTask} key={task._id}/>)
+	})
       })
+      .then(this.getAssignedTaskList.bind(this))
+      .then(this.getOpenTaskList.bind(this))
+      .then(this.getClosedTaskList.bind(this))
       .catch((error) => {
         console.log(error);
       })
     
     if (this.state.logged_in){                                 // If logged in, store user_id in this.state
-      axios.get('http://localhost:5000/users/')            
-        .then(response => {
-          response.data.forEach(function (user) {
-            if (user.username == this.state.username) {  
-              this.setState({ user_id: user._id });
-              return;
-            }
-          })
-        })
-        .catch((error) => {
-          console.log(error);
-        })
+      axios.get('http://localhost:5000/users/get_id_by_username/' + this.state.username)
+	.then(res => set_state({
+	  user_id: res.data
+	}))
+	.catch(console.error);
     }
   }
 
 
-
   deleteTask(id) {
     axios.delete('http://localhost:5000/tasks/'+id)
-      .then(response => { console.log(response.data)});
+      .then(response => {
+	console.log(response.data)
+	this.setState({
+	  all_tasks: this.state.all_tasks.filter(el => el.props.task._id !== id),
+	  assigned_tasks: this.state.assigned_tasks.filter(el => el.props.task._id !== id),
+	  open_tasks: this.state.open_tasks.filter(el => el.props.task._id !== id),
+	  closed_tasks: this.state.closed_tasks.filter(el => el.props.task._id !== id)
+	})
+      })
+      .catch(err => console.error("Couldn't delete task: ", err));
 
+  }
+
+
+
+  getAssignedTaskList() {
+    const username = this.state.username;
     this.setState({
-      all_tasks: this.state.all_tasks.filter(el => el._id !== id)
-    })
-  }
-  
-
-
-  taskList() {
-    return this.state.all_tasks.map(currenttask => {
-      return <Task task={currenttask} deleteTask={this.deleteTask} key={currenttask._id}/>;
-    })
-  }
-
-
-
-  assignedTaskList() {                                      //   go through all Tasks in all_tasks,                          
-    this.state.all_tasks.forEach(function (currenttask) {   //          every one which contains an assigned_user with matching username  
-        currenttask.assignedUsers.forEach(function (user) { //          must be added to assigned_tasks, then returned as a
-            if (user.username == this.state.username  && currenttask.state.ext !== "Closed"){
-                this.state.assigned_tasks.add(currenttask);
-            }
-        })                        
-    })
-    return this.state.assigned_tasks.map(currenttask => {
-      return <Task task={currenttask} deleteTask={this.deleteTask} key={currenttask._id}/>;
+      assigned_tasks: this.state.all_tasks.filter(el =>
+	el.props.task.state.text !== "CLOSED" &&
+	el.props.task.assigned_users
+	  .filter(user => {
+	    if (user === null) {
+	      console.error("Null assigned user in task:", el.props.task);
+	      return false;
+	    }
+	    return true;
+	  })
+	  .map(user => user.username)
+	  .includes(username))
     })
   }
 
 
 
-  openTaskList() {                           //   want to return a list of OpenTask objects                            
+  getOpenTaskList() {                           //   want to return a list of OpenTask objects                            
+    this.setState({
+      open_tasks: this.state.all_tasks
+		    .filter(id => id.props.task.state.text === "OPEN")
+		      .map(id => <OpenTask task={id.props.task} score={this.state.scores[id.props.task._id]}
+					   deleteTask={this.deleteTask} key={id.props.task._id}/>)
+    });
+    return;
+    // TODO delete this stuff or fix this function??
     const request = {                                            //   map all_tasks to taskswithscores 
         labelled_user: this.labelled_user(),                     //   need scores for each task
         labelled_tasks: this.labelled_open_tasks()                   //   run topTasksForUser to run calculateMatchScores on this user, and all tasks
@@ -136,9 +155,14 @@ export default class TasksList extends Component {
 
 
 
-  closedTaskList() {                                              
+  getClosedTaskList() {                                              
+    this.setState({
+      closed_tasks: this.state.all_tasks.filter(id => id.props.task.state.text === "CLOSED")
+    });
+    return;
+    // TODO delete this stuff
     this.state.all_tasks.forEach(function (currenttask) {    
-      if (currenttask.state.text == "Closed") {  
+      if (currenttask.state.text == "CLOSED") {  
         this.state.closed_tasks.add(currenttask);
       }
     })
@@ -152,7 +176,7 @@ export default class TasksList extends Component {
   labelled_open_tasks() {
     let labelledTasks = {};                                    
     this.state.all_tasks.forEach(function (currenttask) {
-      if (currenttask.state.text == "Open") {
+      if (currenttask.state.text == "OPEN") {
         let taskInfo = {
           text: currenttask.description
         };
@@ -208,7 +232,7 @@ export default class TasksList extends Component {
                     </tr>
                   </thead>
                   <tbody>
-                    { this.assignedTaskList() }
+                    { this.state.assigned_tasks }
                   </tbody>
                 </table>
                 <br></br>
@@ -227,7 +251,7 @@ export default class TasksList extends Component {
                     </tr>
                   </thead>
                   <tbody>
-                    { this.openTaskList() }
+                    { this.state.open_tasks }
                   </tbody>
                 </table>
                 <br></br>
@@ -247,7 +271,7 @@ export default class TasksList extends Component {
                     </tr>
                   </thead>
                   <tbody>
-                    { this.taskList() }
+                    { this.state.closed_tasks }
                   </tbody>
                 </table>
                 <br></br>

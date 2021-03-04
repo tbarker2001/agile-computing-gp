@@ -7,7 +7,7 @@ import requests
 
 from enum import Enum
 
-from backend.scraper.code.parsing_methods import cleanLines, generator_pop
+from parsing_methods import cleanLines, generator_pop
 
 
 class PostMode(Enum):

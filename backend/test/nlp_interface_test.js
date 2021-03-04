@@ -8,7 +8,9 @@ describe('NLP pipeline', () => {
     it('should return a list of labels for the scraped profile', () => {
       processProfile({
 	    "username": "oli1",
-	    "stack_profile": "https://stackoverflow.com/users/12870/oli"
+	    "links": {
+	      "stack_profile": "https://stackoverflow.com/users/12870/oli"
+	    }
       })
       .then(labels => labels["model_output"][0]["label"])
     })

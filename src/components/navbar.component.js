@@ -22,22 +22,22 @@ export default class Navbar extends Component {
           </li>
           {
             logged_in
-            ? [
+            ? React.Children.toArray([
                 <li className="navbar-item">
-                  <a href="#" onClick={() => {
+                  <a href="#" className="nav-link" onClick={() => {
                     Cookies.remove("username");
                     window.location = '/';
                     }}>Log Out</a>
                 </li>
-            ]
-            : [
+            ])
+            : React.Children.toArray([
                 <li className="navbar-item">
                 <Link to="/signup" className="nav-link">Sign Up</Link>
                 </li>,
                 <li className="navbar-item">
                 <Link to="/signin" className="nav-link">Log In</Link>
                 </li>
-            ]
+            ])
           }
           
           <li className="navbar-item">

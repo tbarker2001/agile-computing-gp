@@ -27,7 +27,7 @@ router.post('/topTasksForUser', (req, res, next) => {
   const labelled_user = req.body.labelled_user;
 
   calculateMatchScores(labelled_tasks, labelled_user)
-    .then(result => res.send(result.account_set[userId]))
+    .then(result => res.send(result.account_set[labelled_user.__id]))
     .catch(console.error)
 })
 

@@ -2,7 +2,7 @@ const { spawn } = require('child_process');
 const modelsDir = __dirname + "/nlp_models/combined_model/";
 const scraperDir = __dirname + "/scraper/code/";
 const virtualEnvDir = __dirname + "/../agilecompenv"; // Replace with your venv or /usr
-const python = virtualEnvDir + "/bin/python";
+const python = virtualEnvDir + "/Scripts/python";
 
 let runPython = (dirName, scriptName, args) => new Promise((success, reject) => {
   const script = dirName + scriptName;
@@ -38,7 +38,7 @@ let runPython = (dirName, scriptName, args) => new Promise((success, reject) => 
 /// @function processProfile
 /// Scrapes user profile then invokes the NLP model to assign labels
 /// @param {Object} profileInfo The contents of the add user form
-///  { 'username': <username>, 'stack_profile': <url> }
+///  { 'username': <username>, 'links':{ 'stack_profile': <url>, 'github_profile': <url>}, }
 /// @returns {Promise<Object>} The model output on the profile
 ///  { "model_output": <model output>, "data_quality_score": <real> }
 /// Caller must catch any errors.
