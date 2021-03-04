@@ -2,6 +2,7 @@ var router = require('express').Router();
 var User = require('../models/user.model');
 const { processProfile, processTask, calculateMatchScores } = require('../nlp_interface');
 
+/// @deprecated Not used
 router.post('/processTask', (req, res, next) => {
   processTask({
     text: req.body.text
@@ -12,6 +13,7 @@ router.post('/processTask', (req, res, next) => {
     .catch(console.error);
 })
 
+/// @deprecated Not used
 router.post('/processProfile', (req, res, next) => {        // simply a copy of /processTask above
   processProfile({                                          
     text: req.body.text
@@ -29,7 +31,10 @@ router.post('/topTasksForUser', (req, res, next) => {
 
   calculateMatchScores(labelled_tasks, labelled_user)
     .then(result => res.send(result.account_set[labelled_user.__id]))
-    .catch(console.error)
+    .catch(err => {
+      console.error(err)
+      res.status(400).json('Error: ' + err)
+    })
 })
 
 router.post('/topUsersForTask', (req, res, next) => {
@@ -44,7 +49,10 @@ router.post('/topUsersForTask', (req, res, next) => {
     ])))
     .then(users => calculateMatchScores(tasks, users))
     .then(result => res.send(result.task_set.thistask))
-    .catch(console.error)
+    .catch(err => {
+      console.error(err)
+      res.status(400).json('Error: ' + err)
+    })
 })
 
 module.exports = router;

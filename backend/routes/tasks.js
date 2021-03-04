@@ -21,8 +21,10 @@ router.route('/').get((req, res) => {
 	}))
     ))
     .then(tasks => res.json(tasks))
-    .catch(err => {console.error(err); return err;})
-    .catch(err => res.status(400).json('Error: ' + err));
+    .catch(err => {
+      console.error(err)
+      res.status(400).json('Error: ' + err)
+    })
 });
 
 router.route('/add').post((req, res) => {
