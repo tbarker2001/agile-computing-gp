@@ -5,7 +5,7 @@ import re
 import nltk
 import time
 
-import parsing_methods
+import scraper_methods
 
 nltk.download('punkt')
 nltk.download('averaged_perceptron_tagger')
@@ -118,7 +118,7 @@ def parse_paper(url, session=None):
 
     # Process data
     # TODO: consider if more processing could help
-    title_tokens = parsing_methods.tokenize_title(title)
+    title_tokens = scraper_methods.tokenize_title(title)
 
     # Save the data to files suitable for use with fasttext, one for supervised learning, one for non supervised leaning
     write_labelled_abstracts(subjects, title_tokens, abstract, taggedfilename)

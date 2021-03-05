@@ -44,7 +44,7 @@ let runPython = (dirName, scriptName, args) => new Promise((success, reject) => 
 ///    "top_labels": <model_output> (but with fewer labels) }
 /// Caller must catch any errors.
 let processProfile = (profileInfo) =>
-  runPython(scraperDir, 'profile.py', profileInfo)
+  runPython(scraperDir, 'user_profile.py', profileInfo)
   .then((scraperOutput) => runPython(modelsDir, "predict.py", scraperOutput))
 
 /// @function processTask
