@@ -1,6 +1,6 @@
 import json
 import unittest
-from backend.scraper.code.profile import UserProfile
+from user_profile import UserProfile
 
 
 class TestProfile(unittest.TestCase):

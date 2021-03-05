@@ -2,14 +2,12 @@ import json
 import sys
 
 from github_scraper import GithubProfile
-from parsing_methods import generator_pop
+from scraper_methods import generator_pop
 from stack_overflow_scraper import StackOverflowProfile
+
 
 class UserProfile:
 
-    _stack_profile = None
-    _github_profile = None
-    
     def __init__(self, user_details):
         "takes the user details dictionary and creates object which is composed of scraper objects"
 
@@ -50,7 +48,7 @@ class UserProfile:
 if __name__ == "__main__":
     input_json = json.loads(sys.argv[1])
     profile = UserProfile(input_json)
-    
+
     nasp = profile.get_next_asked_stack_post()
 
     # Was throwing a "nonetype has no attribute getpost" error
@@ -62,5 +60,5 @@ if __name__ == "__main__":
         output = {
             'text': ""
         }
-    
+
     sys.stdout.write(json.dumps(output))

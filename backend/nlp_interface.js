@@ -1,6 +1,6 @@
 const { spawn } = require('child_process');
 const modelsDir = __dirname + "/nlp_models/combined_model/";
-const scraperDir = __dirname + "/scraper/code/";
+const scraperDir = __dirname + "/scraper/src.code/";
 const virtualEnvDir = __dirname + "/../agilecompenv"; // Replace with your venv or /usr
 const python = virtualEnvDir + "/Scripts/python";
 
@@ -44,7 +44,7 @@ let runPython = (dirName, scriptName, args) => new Promise((success, reject) => 
 ///    "top_labels": <model_output> (but with fewer labels) }
 /// Caller must catch any errors.
 let processProfile = (profileInfo) =>
-  runPython(scraperDir, 'profile.py', profileInfo)
+  runPython(scraperDir, 'user_profile.py', profileInfo)
   .then((scraperOutput) => runPython(modelsDir, "predict.py", scraperOutput))
 
 /// @function processTask
