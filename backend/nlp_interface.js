@@ -40,7 +40,8 @@ let runPython = (dirName, scriptName, args) => new Promise((success, reject) => 
 /// @param {Object} profileInfo The contents of the add user form
 ///  { 'username': <username>, 'links':{ 'stack_profile': <url>, 'github_profile': <url>}, }
 /// @returns {Promise<Object>} The model output on the profile
-///  { "model_output": <model output>, "data_quality_score": <real> }
+///  { "model_output": <model output>, "data_quality_score": <real>,
+///    "top_labels": <model_output> (but with fewer labels) }
 /// Caller must catch any errors.
 let processProfile = (profileInfo) =>
   runPython(scraperDir, 'profile.py', profileInfo)
@@ -50,7 +51,8 @@ let processProfile = (profileInfo) =>
 /// Invokes the NLP model on the task description to assign labels
 /// @param {Object} taskInfo Format TBD currently {'text': <task description string>}
 /// @returns {Promise<Object>} The <model output> on the task
-///  { "model_output": <model output>, "data_quality_score": <real> }
+///  { "model_output": <model output>, "data_quality_score": <real>,
+///    "top_labels": <model_output> (but with fewer labels) }
 /// Caller must catch any errors.
 let processTask = (taskInfo) =>
   runPython(modelsDir, "predict.py", taskInfo)
@@ -61,7 +63,7 @@ let processTask = (taskInfo) =>
 /// @param {Object} overriddenTaskInfo Contents of the override model output form
 ///  Format TBD
 /// @returns {Promise<Object>} Modified model output
-///  { "model_output": <model output>, "data_quality_score": <real> }
+///  { "model_output": <model output>, "data_quality_score": <real>, "top_labels": [<String>]}
 /// Caller must catch any errors.
 let overrideTaskLabels = (overriddenTaskInfo) =>
   runPython(modelsDir, "overrideTaskLabels.py", overriddenTaskInfo)

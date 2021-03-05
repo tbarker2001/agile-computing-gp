@@ -61,9 +61,9 @@ export default class CreateTask extends Component {
       description: '',
       state: '',
       date: new Date(),
-      model_output: {},
-      nlp_labels: [],
-      scored_users: [],
+      model_output: {}, // output of the NLP model (containing all identified labels)
+      top_labels: [], // Label components for the top assigned labels
+      top_users: [], // User components for the top matching users
       manually_added: ''
     }
   }
@@ -103,23 +103,25 @@ export default class CreateTask extends Component {
   }
 
   findLabels(){
-    // TODO: take in task description text, store labels from this in state.labels
-    let taskInfo = {
+    const taskInfo = {
       text: this.state.description
     };
     axios.post('http://localhost:5000/nlptest/processTask', taskInfo)
       .then(response => {
-	    const modelOutput = response.data.model_output;
-	    this.setState({
-	      model_output: modelOutput
-	    });
-	    const labels = modelOutput.map(x => <Label label={{
-	      string: x.label,
-	      score: x.probability
-	    }}/>);
-	    this.setState({
-          nlp_labels: labels
+	const modelOutput = response.data.model_output;
+	const labels = React.Children.toArray(response.data.top_labels.map(x => <Label label={{
+	  string: x.label,
+	  score: x.probability
+	}}/>));
+	this.setState({
+	  model_output: modelOutput,
+          top_labels: labels
         })
+      })
+      .catch(err => {
+	console.error(err);
+	// TODO spinner off
+	alert(`Error retrieving labels`);
       })
   }
 
@@ -132,31 +134,21 @@ export default class CreateTask extends Component {
     axios.post('http://localhost:5000/nlptest/topUsersForTask', taskInfo)
       .then(response => {
 	    this.setState({
-	      scored_users: Object.keys(response.data).map(userId => 
-            <User user={{
+	      top_users: React.Children.toArray(Object.keys(response.data).map(userId => 
+		<User user={{
 	          username: userId,
 	          match_score: response.data[userId].score
-	        }}/>)
+	        }}/>))
 	    });
       })
   }
 
-  labelList() {
-    // TODO: input labels list from this.state.labels, output Label list suitable for a table (tbody) (similar to taskList() function in tasks-list.component.js)
-    return this.state.nlp_labels
-  }
-
-  currentUsersList() {
-    
-  //    return this.state.users.map(currentuser => {
-  //        return <User user={currentuser} key={currentuser._id}/>
-  //    })
-    return this.state.scored_users;      // TODO: same as labelList above, but for putting recommended users into its table from this.state.users
-  }
 
   onSubmit(e) {
     e.preventDefault();
 
+    // TODO deal with no assigned user here!
+    
     var getManuallyAddedProfile = axios.get('http://localhost:5000/users/get_id_by_username/' + this.state.manually_added)
     var getCreatorProfile = axios.get('http://localhost:5000/users/get_id_by_username/' + this.state.creator_username)
 
@@ -172,7 +164,7 @@ export default class CreateTask extends Component {
 	  state: this.state.state,
 	  date: this.state.date,
 	  assigned_users: [manually_added],
-	  nlp_labels: this.state.nlp_labels
+	  nlp_labels: this.state.model_output
 	}
     
 	console.log("Task: ", task);
@@ -185,10 +177,12 @@ export default class CreateTask extends Component {
       })
       .catch(err => {
 	console.error(err)
-	// TODO display error to user
+	// TODO spinner off
+	alert(`Error saving the task.`);
       });
       
   }
+
 
   render() {
     return (
@@ -246,7 +240,7 @@ export default class CreateTask extends Component {
             <article>
                 <button type="button" onClick={ this.findLabels.bind(this) }>(Re)evaluate labels</button>
                 <br></br><br></br>
-                <label>Biggest tags we identified: </label>
+                <label>Top labels for this task: </label>
                 <table className="table">
                     <thead className="thead-light">
                         <tr>
@@ -256,7 +250,7 @@ export default class CreateTask extends Component {
                         </tr>
                     </thead>
                     <tbody>
-                        { this.labelList() }
+                        { this.state.top_labels }
                     </tbody>
                 </table>
                 <br></br>
@@ -274,7 +268,7 @@ export default class CreateTask extends Component {
                         </tr>
                     </thead>
                     <tbody>
-                        { this.currentUsersList() }
+                        { this.state.top_users }
                     </tbody>
                 </table>
                 <div className="form-group"> 
