@@ -109,6 +109,7 @@ export default class CreateTask extends Component {
     super(props);
 
     this.onChangeDescription = this.onChangeDescription.bind(this);
+    this.onBlurDescription = this.onBlurDescription.bind(this);
     this.onChangeTitle = this.onChangeTitle.bind(this);   
     this.onChangeState = this.onChangeState.bind(this);
     this.onChangeDeadline = this.onChangeDeadline.bind(this);
@@ -129,6 +130,7 @@ export default class CreateTask extends Component {
       add_label_field: '',
       manual_added_labels: [],  // [<string>]
       manual_deleted_labels: [],// [<string>]
+      labels_is_outdated: false,// <boolean> not allowing submit when labels are outdated
       recommended_users: {} 	// {<username>: {score: <real>, is_assigned: <boolean>}, ...}
     }
   }
@@ -140,6 +142,12 @@ export default class CreateTask extends Component {
   onChangeDescription(e) {
     this.setState({
       description: e.target.value
+    })
+  }
+
+  onBlurDescription(e) {
+    this.setState({
+      labels_is_outdated: true
     })
   }
 
@@ -169,11 +177,17 @@ export default class CreateTask extends Component {
 
   onManualAddLabel() {
     const label = this.state.add_label_field;
-    this.setState({
-      top_labels: [...this.state.top_labels, {label: label, probability: null}],
-      manual_added_labels: [...this.state.manual_added_labels, label],
-      add_label_field: ''
-    })
+    if (label in this.state.manual_added_labels) {
+      this.setState({
+	add_label_field: ''
+      })
+    } else {
+      this.setState({
+	top_labels: [...this.state.top_labels, {label: label, probability: null}],
+	manual_added_labels: [...this.state.manual_added_labels, label],
+	add_label_field: ''
+      })
+    }
   }
 
   onManualDeleteLabel(label) {
@@ -223,9 +237,12 @@ export default class CreateTask extends Component {
     axios.post('http://localhost:5000/nlptest/processTask', taskInfo)
       .then(response => this.setState({
 	model_output: response.data.model_output,
-	top_labels: response.data.top_labels,
-	manual_added_labels: [],
-	manual_deleted_labels: []
+	top_labels: [
+	  ...response.data.top_labels
+	    .filter(label => !this.state.manual_deleted_labels.includes(label.label)),
+	  ...this.state.manual_added_labels.map(label => ({label: label, probability: null}))
+	],
+	labels_is_outdated: false
       }))
       .catch(err => {
 	console.error(err);
@@ -269,6 +286,11 @@ export default class CreateTask extends Component {
 
   onSubmit(e) {
     e.preventDefault();
+
+    if (this.state.labels_is_outdated) {
+      alert("Your labels are outdated.  Please evaluate labels before submitting.");
+      return;
+    }
 
     const getAssignedUserIds =
       Promise.all(this.getAssignedUsers().map(username =>
@@ -331,6 +353,7 @@ export default class CreateTask extends Component {
                       className="form-control"
                       value={this.state.description}
                       onChange={this.onChangeDescription}
+		      onBlur={this.onBlurDescription}
                       id="descriptionBox"
                       />
                 </div>
@@ -364,7 +387,12 @@ export default class CreateTask extends Component {
           </div>
           <div className="tagBoxView">
             <article>
-                <button type="button" onClick={ this.findLabels.bind(this) }>(Re)evaluate labels</button>
+                <button
+		  type="button"
+		  onClick={this.findLabels.bind(this)}
+		>
+		  (Re)evaluate labels
+		</button>
                 <br></br><br></br>
 		<article>
 		  <label>Top labels for this task: </label>
@@ -392,6 +420,11 @@ export default class CreateTask extends Component {
 			      <a href="#" onClick={this.onManualAddLabel.bind(this)}>+</a>
 			    </td>
 			  </tr>
+			    {
+				this.state.manual_deleted_labels.length > 0
+				? <tr>Manually removed: {this.state.manual_deleted_labels.join()}</tr>
+				: null
+			    }
 		      </tbody>
 		  </table>
 		</article>
