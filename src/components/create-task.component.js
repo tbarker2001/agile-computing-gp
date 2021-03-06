@@ -16,26 +16,83 @@ const Label = props => (
   </tr>
 )
 
+
+/// @param props {
+///	username: <string>,
+///	matchScore: <real>,
+///	isAssigned: <boolean>,
+///	onToggleAssignment: <function : username => {...}
+/// }
 const User = props => {
+  const onChange = () => props.onToggleAssignment(props.username);
   return (
-  <tr>
-    <td>{props.user.username}</td>
-    <td>{props.user.match_score}</td>
-    <td>
-      <a href="#" onClick={() => { props.deleteLabel(props.label._id) }}>Y/N</a>       
-    </td>
-  </tr>
-)}
+    <tr>
+      <td>{props.username}</td>
+      <td>{props.matchScore}</td>
+      <td>
+	<input
+	  type="checkbox"
+	  defaultChecked={props.isAssigned}
+	  onChange={onChange}
+	/>
+      </td>
+    </tr>
+  );
+}
+
+
+/// @param props {
+///   users: {
+///     <username>: {
+///       score: <real>,
+///       is_assigned: <boolean>
+//      },
+///     ...
+///   },
+///   onToggleAssignment: <username> => {...}
+/// }
+const RecommendedUserList = props => {
+  // TODO display only top N & add search bar to filter by username
+  const displayedUsers = React.Children.toArray(
+    Object.keys(props.users)
+      .map(username =>
+	<User
+	  username={username}
+	  matchScore={props.users[username].score}
+	  isAssigned={props.users[username].is_assigned}
+	  onToggleAssignment={() => props.onToggleAssignment(username)}
+	/>)
+  );
+
+  return (
+    <article>
+      <label>Recommended users: </label>
+      <table className="table">
+	<thead className="thead-light">
+	  <tr>
+	    <th>User</th>
+	    <th>Score</th>
+	    <th>Action</th>
+	  </tr>
+	</thead>
+	<tbody>
+	  { displayedUsers }
+	</tbody>
+      </table>
+    </article>
+  );
+}
+
+
 
 /*
     Create task fulfills the following:
         - create a task with decription text
-        - click '(Re)evaluate labels' to produce a list of Labels stored in this.state.nlp_labels
-        - review top labels, click 'delete' to remove label from list this.state.nlp_labels 
-          ((Re)evaluate labels will cancel these manual changes)
+        - click '(Re)evaluate labels' to produce a list of Labels stored in this.state.model_output
+	  with the top labels in this.state.top_labels
+        - review top labels, click 'delete' to set the label "manually removed"
+          ((Re)evaluate labels will cancel these manual changes) TODO it shouldn't
         - click '(Re)evaluate recommended users' to display top profile and their matching score
-            - maybe store these automatics in 'this.state.users' 
-            and 
             if selected or manually assigned, then add to this.state.assigned_users
         - add a task to task collection in db
 */
@@ -49,7 +106,6 @@ export default class CreateTask extends Component {
     this.onChangeState = this.onChangeState.bind(this);
     this.onChangeDate = this.onChangeDate.bind(this);
     this.onSubmit = this.onSubmit.bind(this);
-    this.onChangeManual = this.onChangeManual.bind(this);
 
     var username = Cookies.get("username");
     var logged_in = (username !== undefined);
@@ -57,19 +113,17 @@ export default class CreateTask extends Component {
     this.state = {
       creator_username: username,
       title: '',
-      assigned_users: [],
       description: '',
       state: '',
       date: new Date(),
-      model_output: {}, // output of the NLP model (containing all identified labels)
-      top_labels: [], // Label components for the top assigned labels
-      top_users: [], // User components for the top matching users
-      manually_added: ''
+      model_output: {},		// output of the NLP model (containing all identified labels)
+      top_labels: [], 		// Label components for the top assigned labels
+      recommended_users: {} 	// {<username>: {score: <real>, is_assigned: <boolean>}, ...}
     }
   }
 
   componentDidMount() {
-
+    // Empty
   }
 
   onChangeDescription(e) {
@@ -96,13 +150,25 @@ export default class CreateTask extends Component {
     })
   }
 
-  onChangeManual(e) {
+  onToggleAssignment(username) {
+    let newUsers = Object.assign({}, this.state.recommended_users);
+    if (!(username in newUsers))
+      throw new Error(`Username ${username} is unexpected`);
+    newUsers[username].is_assigned = !(newUsers[username].is_assigned);
+
     this.setState({
-      manually_added: e.target.value
+      recommended_users: newUsers
     })
   }
 
-  findLabels(){
+  getAssignedUsers() {
+    return Object.entries(this.state.recommended_users)
+      .filter(([username, attr]) => attr.is_assigned)
+      .map(([username, attr]) => username)
+  }
+
+
+  findLabels() {
     const taskInfo = {
       text: this.state.description
     };
@@ -126,20 +192,32 @@ export default class CreateTask extends Component {
   }
 
 
-  findUsers(){
-    // TODO: take in this.state.labels, match with users and output users with their scores, stored in this.state.users
+  findUsers() {
     const taskInfo = {
       task_model_output: this.state.model_output
     };
     axios.post('http://localhost:5000/nlptest/topUsersForTask', taskInfo)
       .then(response => {
-	    this.setState({
-	      top_users: React.Children.toArray(Object.keys(response.data).map(userId => 
-		<User user={{
-	          username: userId,
-	          match_score: response.data[userId].score
-	        }}/>))
-	    });
+	// Transfer already assigned users from current user list
+	let newUsers = {};
+	Object.entries(response.data).forEach(([username, attr]) => {
+	  const isAssigned =
+	    username in this.state.recommended_users
+	    && this.state.recommended_users[username].is_assigned;
+	  newUsers[username] = {
+	    score: attr.score,
+	    is_assigned: isAssigned
+	  };
+	});
+
+	this.setState({
+	  recommended_users: newUsers
+	})
+      })
+      .catch(err => {
+	console.error(err);
+	// TODO spinner off
+	alert(`Error retrieving recommended users`);
       })
   }
 
@@ -147,28 +225,26 @@ export default class CreateTask extends Component {
   onSubmit(e) {
     e.preventDefault();
 
-    // TODO deal with no assigned user here!
-    
-    var getManuallyAddedProfile = axios.get('http://localhost:5000/users/get_id_by_username/' + this.state.manually_added)
-    var getCreatorProfile = axios.get('http://localhost:5000/users/get_id_by_username/' + this.state.creator_username)
+    const getAssignedUserIds =
+      Promise.all(this.getAssignedUsers().map(username =>
+	axios.get('http://localhost:5000/users/get_id_by_username/' + username)));
+    const getCreatorUserId = axios.get('http://localhost:5000/users/get_id_by_username/' + this.state.creator_username)
 
-    Promise.all([getManuallyAddedProfile, getCreatorProfile])
+    Promise.all([getAssignedUserIds, getCreatorUserId])
       .then(res => {
-        const manually_added = res[0].data;
-	const creator_user = res[1].data;
+        const assigned_user_ids = res[0].map(attr => attr.data);
+	const creator_user_id = res[1].data;
 
 	const task = {
-	  creator_user: creator_user,
+	  creator_user: creator_user_id,
 	  description: this.state.description,
 	  title: this.state.title,
 	  state: this.state.state,
 	  date: this.state.date,
-	  assigned_users: [manually_added],
+	  assigned_users: assigned_user_ids,
 	  nlp_labels: this.state.model_output
 	}
     
-	console.log("Task: ", task);
-      
         return axios.post('http://localhost:5000/tasks/add', task)
       })
       .then(res => {
@@ -229,6 +305,9 @@ export default class CreateTask extends Component {
                     />
                   </div>
                 </div>
+		<div className="form-group">
+		  <label>Currently assigned users: {this.getAssignedUsers().join()}</label>
+		</div>
                 <br></br>
                 <div className="form-group">
                   <input type="submit" value="Create Task" className="btn btn-primary" />
@@ -240,46 +319,30 @@ export default class CreateTask extends Component {
             <article>
                 <button type="button" onClick={ this.findLabels.bind(this) }>(Re)evaluate labels</button>
                 <br></br><br></br>
-                <label>Top labels for this task: </label>
-                <table className="table">
-                    <thead className="thead-light">
-                        <tr>
-                          <th>String</th>
-                          <th>Score</th>
-                          <th>action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        { this.state.top_labels }
-                    </tbody>
-                </table>
+		<article>
+		  <label>Top labels for this task: </label>
+		  <table className="table">
+		      <thead className="thead-light">
+			  <tr>
+			    <th>String</th>
+			    <th>Score</th>
+			    <th>action</th>
+			  </tr>
+		      </thead>
+		      <tbody>
+			  { this.state.top_labels }
+		      </tbody>
+		  </table>
+		</article>
                 <br></br>
                 <br></br>
                 <button type="button" onClick={ this.findUsers.bind(this) }>(Re)evaluate recommended users</button>
                 <br></br>
                 <br></br>
-                <label>Recommended users: </label>
-                <table className="table">
-                    <thead className="thead-light">
-                        <tr>
-                            <th>User</th>
-                            <th>Score</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        { this.state.top_users }
-                    </tbody>
-                </table>
-                <div className="form-group"> 
-                  <label>Manually assign a user?</label>
-                  <input type="text"
-                      required
-                      className="form-control"
-                      value={this.state.manually_added}
-                      onChange={this.onChangeManual}
-                  />
-                </div>
+		<RecommendedUserList
+		  users={this.state.recommended_users}
+		  onToggleAssignment={this.onToggleAssignment.bind(this)}
+		/>
             </article>
           </div>
       </div>
