@@ -237,7 +237,9 @@ export default class CreateTask extends Component {
 
   findUsers() {
     const taskInfo = {
-      task_model_output: this.state.model_output
+      model_output: this.state.model_output,
+      manual_added_labels: this.state.manual_added_labels,
+      manual_deleted_labels: this.state.manual_deleted_labels
     };
     axios.post('http://localhost:5000/nlptest/topUsersForTask', taskInfo)
       .then(response => {

@@ -44,7 +44,7 @@ router.post('/topTasksForUser', (req, res, next) => {
 
 router.post('/topUsersForTask', (req, res, next) => {
   const tasks = {
-    thistask: req.body.task_model_output
+    thistask: req.body
   };
 
   User.find()

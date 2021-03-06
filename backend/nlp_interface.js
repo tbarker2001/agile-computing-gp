@@ -49,7 +49,7 @@ let processProfile = (profileInfo) =>
 
 /// @function processTask
 /// Invokes the NLP model on the task description to assign labels
-/// @param {Object} taskInfo Format TBD currently {'text': <task description string>}
+/// @param {Object} taskInfo Format: {'text': <task description string>}
 /// @returns {Promise<Object>} The <model output> on the task
 ///  { "model_output": <model output>, "data_quality_score": <real>,
 ///    "top_labels": <model_output> (but with fewer labels) }
@@ -59,6 +59,8 @@ let processTask = (taskInfo) =>
 
 /// @function overrideTaskLabels
 /// Adjusts the model output for the task with the creator's modifications
+/// @deprecated We are storing manual added & deleted labels in the db
+///  and take them into account in the matching script
 /// (can delete labels or manually enter new labels)
 /// @param {Object} overriddenTaskInfo Contents of the override model output form
 ///  Format TBD
@@ -72,7 +74,14 @@ let overrideTaskLabels = (overriddenTaskInfo) =>
 /// Invokes the task to profile matching algorithm to calculate numeric
 /// relevance score between each pair of task and profile
 /// @param {Object} tasks Set of task model outputs, format is
-///  { <task_id>: <model_output>, ... }
+/// {
+///   <task_id>: {
+///     "model_output": <model_output(list of labels)>,
+///     "manual_added_labels": [<string>],
+///     "manual_deleted_labels": [<string>]
+///   },
+///   ...
+/// }
 /// @param {Object} profiles Set of profile model outputs
 ///  { <profile_id>: <model_output>, ... }
 /// @returns {Promise<Object>} Scores between each task-profile pair, refer to match.py
