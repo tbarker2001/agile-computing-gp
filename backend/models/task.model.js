@@ -16,8 +16,8 @@ const taskSchema = new Schema({
   date: { type: Date, required: true },
 
   nlp_labels: [labelSchema],
-  manual_deleted_labels: [labelSchema],
-  manual_added_labels: [labelSchema],
+  manual_deleted_labels: [{ type: String }],
+  manual_added_labels: [{ type: String }],
 }, {
   timestamps: true,
 });

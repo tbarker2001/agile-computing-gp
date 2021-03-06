@@ -37,8 +37,8 @@ router.route('/add').post((req, res) => {
       assigned_users:          req.body.assigned_users,
       date:                    Date.parse(req.body.date),
       nlp_labels:              req.body.nlp_labels,
-      manual_deleted_labels:   [],
-      manual_added_labels:     []
+      manual_deleted_labels:   req.body.manual_deleted_labels,
+      manual_added_labels:     req.body.manual_added_labels
     }))
     .then(newTask => newTask.save())
     .then(() => res.json('Task added!'))

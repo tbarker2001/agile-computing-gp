@@ -6,12 +6,17 @@ import DatePicker from 'react-datepicker';
 import "react-datepicker/dist/react-datepicker.css";
 import "../App.css";
 
+/// @param props {
+///   label: <string>,
+///   probability: <real>,
+///   onManualDelete: (label) => {...}
+/// }
 const Label = props => (
   <tr>
-    <td>{props.label.string}</td>
-    <td>{props.label.score}</td>
+    <td>{props.label}</td>
+    <td>{props.probability}</td>
     <td>
-      <a href="#" onClick={() => { props.deleteLabel(props.label._id) }}>X</a>       
+      <a href="#" onClick={() => props.onManualDelete(props.label)}>X</a>       
     </td>
   </tr>
 )
@@ -87,13 +92,15 @@ const RecommendedUserList = props => {
 
 /*
     Create task fulfills the following:
-        - create a task with decription text
-        - click '(Re)evaluate labels' to produce a list of Labels stored in this.state.model_output
-	  with the top labels in this.state.top_labels
-        - review top labels, click 'delete' to set the label "manually removed"
-          ((Re)evaluate labels will cancel these manual changes) TODO it shouldn't
-        - click '(Re)evaluate recommended users' to display top profile and their matching score
-            if selected or manually assigned, then add to this.state.assigned_users
+        - create a task with description text
+        - click '(Re)evaluate labels' to produce a list of labels stored in this.state.model_output
+	  with the top labels (the ones actually shown) in this.state.top_labels
+        - review top labels, click 'X' to set the label "manually removed",
+	  type in new labels then click '+' to "manually add" labels
+        - (Re)evaluate labels will cancel these manual changes
+        - click '(Re)evaluate recommended users' to display all users with their matching score
+           check in the box to set the user "assigned"
+	- TODO make this list searchable and only display top N by default
         - add a task to task collection in db
 */
 
@@ -106,6 +113,7 @@ export default class CreateTask extends Component {
     this.onChangeState = this.onChangeState.bind(this);
     this.onChangeDate = this.onChangeDate.bind(this);
     this.onSubmit = this.onSubmit.bind(this);
+    this.onChangeAddLabelField = this.onChangeAddLabelField.bind(this);
 
     var username = Cookies.get("username");
     var logged_in = (username !== undefined);
@@ -117,7 +125,10 @@ export default class CreateTask extends Component {
       state: '',
       date: new Date(),
       model_output: {},		// output of the NLP model (containing all identified labels)
-      top_labels: [], 		// Label components for the top assigned labels
+      top_labels: [], 		// top labels in format {label: <string>, probability: <real>}
+      add_label_field: '',
+      manual_added_labels: [],  // [<string>]
+      manual_deleted_labels: [],// [<string>]
       recommended_users: {} 	// {<username>: {score: <real>, is_assigned: <boolean>}, ...}
     }
   }
@@ -150,6 +161,34 @@ export default class CreateTask extends Component {
     })
   }
 
+  onChangeAddLabelField(e) {
+    this.setState({
+      add_label_field: e.target.value
+    })
+  }
+
+  onManualAddLabel() {
+    const label = this.state.add_label_field;
+    this.setState({
+      top_labels: [...this.state.top_labels, {label: label, probability: null}],
+      manual_added_labels: [...this.state.manual_added_labels, label],
+      add_label_field: ''
+    })
+  }
+
+  onManualDeleteLabel(label) {
+    if (label in this.state.manual_added_labels)
+      this.setState({
+	top_labels: this.state.top_labels.filter(el => el.label !== label),
+	manual_added_labels: this.state.manual_added_labels.filter(el => el !== label)
+      })
+    else
+      this.setState({
+	top_labels: this.state.top_labels.filter(el => el.label !== label),
+	manual_deleted_labels: [...this.state.manual_deleted_labels, label]
+      })
+  }
+
   onToggleAssignment(username) {
     let newUsers = Object.assign({}, this.state.recommended_users);
     if (!(username in newUsers))
@@ -159,6 +198,15 @@ export default class CreateTask extends Component {
     this.setState({
       recommended_users: newUsers
     })
+  }
+
+  getTopLabels() {
+    return React.Children.toArray(this.state.top_labels.map(x =>
+      <Label
+	label={x.label}
+	probability={x.probability}
+	onManualDelete={this.onManualDeleteLabel.bind(this)}
+      />));
   }
 
   getAssignedUsers() {
@@ -173,17 +221,12 @@ export default class CreateTask extends Component {
       text: this.state.description
     };
     axios.post('http://localhost:5000/nlptest/processTask', taskInfo)
-      .then(response => {
-	const modelOutput = response.data.model_output;
-	const labels = React.Children.toArray(response.data.top_labels.map(x => <Label label={{
-	  string: x.label,
-	  score: x.probability
-	}}/>));
-	this.setState({
-	  model_output: modelOutput,
-          top_labels: labels
-        })
-      })
+      .then(response => this.setState({
+	model_output: response.data.model_output,
+	top_labels: response.data.top_labels,
+	manual_added_labels: [],
+	manual_deleted_labels: []
+      }))
       .catch(err => {
 	console.error(err);
 	// TODO spinner off
@@ -242,7 +285,9 @@ export default class CreateTask extends Component {
 	  state: this.state.state,
 	  date: this.state.date,
 	  assigned_users: assigned_user_ids,
-	  nlp_labels: this.state.model_output
+	  nlp_labels: this.state.model_output,
+	  manual_added_labels: this.state.manual_added_labels,
+	  manual_deleted_labels: this.state.manual_deleted_labels
 	}
     
         return axios.post('http://localhost:5000/tasks/add', task)
@@ -330,7 +375,21 @@ export default class CreateTask extends Component {
 			  </tr>
 		      </thead>
 		      <tbody>
-			  { this.state.top_labels }
+			  { this.getTopLabels() }
+			  <tr>
+			    <td>
+			      <input
+				type="text"
+				placeholder="Add new label"
+				value={this.state.add_label_field}
+				onChange={this.onChangeAddLabelField}
+			      />
+			    </td>
+			    <td></td>
+			    <td>
+			      <a href="#" onClick={this.onManualAddLabel.bind(this)}>+</a>
+			    </td>
+			  </tr>
 		      </tbody>
 		  </table>
 		</article>
