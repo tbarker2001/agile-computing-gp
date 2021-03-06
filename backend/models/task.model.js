@@ -14,6 +14,7 @@ const taskSchema = new Schema({
   assigned_users: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
 
   date: { type: Date, required: true },
+  deadline: { type: Date },
 
   nlp_labels: [labelSchema],
   manual_deleted_labels: [{ type: String }],

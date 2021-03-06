@@ -111,7 +111,7 @@ export default class CreateTask extends Component {
     this.onChangeDescription = this.onChangeDescription.bind(this);
     this.onChangeTitle = this.onChangeTitle.bind(this);   
     this.onChangeState = this.onChangeState.bind(this);
-    this.onChangeDate = this.onChangeDate.bind(this);
+    this.onChangeDeadline = this.onChangeDeadline.bind(this);
     this.onSubmit = this.onSubmit.bind(this);
     this.onChangeAddLabelField = this.onChangeAddLabelField.bind(this);
 
@@ -123,7 +123,7 @@ export default class CreateTask extends Component {
       title: '',
       description: '',
       state: '',
-      date: new Date(),
+      deadline: null,
       model_output: {},		// output of the NLP model (containing all identified labels)
       top_labels: [], 		// top labels in format {label: <string>, probability: <real>}
       add_label_field: '',
@@ -143,9 +143,9 @@ export default class CreateTask extends Component {
     })
   }
 
-  onChangeDate(date) {
+  onChangeDeadline(date) {
     this.setState({
-      date: date
+      deadline: date
     })
   }
 
@@ -283,7 +283,7 @@ export default class CreateTask extends Component {
 	  description: this.state.description,
 	  title: this.state.title,
 	  state: this.state.state,
-	  date: this.state.date,
+	  deadline: this.state.deadline,
 	  assigned_users: assigned_user_ids,
 	  nlp_labels: this.state.model_output,
 	  manual_added_labels: this.state.manual_added_labels,
@@ -342,11 +342,11 @@ export default class CreateTask extends Component {
                   />
                 </div>
                 <div className="form-group">
-                  <label>Date: </label>
+                  <label>Deadline: </label>
                   <div>
                     <DatePicker
-                      selected={this.state.date}
-                      onChange={this.onChangeDate}
+                      selected={this.state.deadline}
+                      onChange={this.onChangeDeadline}
                     />
                   </div>
                 </div>

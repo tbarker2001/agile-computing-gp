@@ -35,7 +35,8 @@ router.route('/add').post((req, res) => {
       state:                   state._id,
       creator_user:            req.body.creator_user,
       assigned_users:          req.body.assigned_users,
-      date:                    Date.parse(req.body.date),
+      date:                    new Date(),
+      deadline:                req.body.deadline === null ? null : Date.parse(req.body.deadline),
       nlp_labels:              req.body.nlp_labels,
       manual_deleted_labels:   req.body.manual_deleted_labels,
       manual_added_labels:     req.body.manual_added_labels
