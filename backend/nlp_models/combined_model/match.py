@@ -22,13 +22,17 @@ def match_score(a_labels, b_labels):
             ...
         },
         "task_set: {
-            <task_id>: [
-                {
-                    "label": <string>,
-                    "probability": <real>
-                },
-                ...
-            ],
+            <task_id>: {
+                "model_output": [
+                    {
+                        "label": <string>,
+                        "probability": <real>
+                    },
+                    ...
+                ],
+                "manual_added_labels": [<string>],
+                "manual_deleted_labels": [<string>]
+            },
             ...
         }
     }'
@@ -53,6 +57,8 @@ def match_score(a_labels, b_labels):
         }
     }'
     Notes: task_ids and account_ids are assumed to be universally unique
+    TODO build vectors of accounts and tasks biased by the added & removed
+         labels & calculate cosine similarity
 """
 if __name__ == "__main__":
     # Parse JSON input
@@ -69,11 +75,14 @@ if __name__ == "__main__":
         ] + [
             (task_id, dict([
                 (label['label'], label['probability'])
-                for label in labels
+                for label in attr['model_output']
+                if label['label'] not in attr['manual_deleted_labels']
+            ] + [
+                (label, 1.0) for label in attr['manual_added_labels']
             ]))
-            for task_id, labels in task_set.items()
+            for task_id, attr in task_set.items()
     ])
-
+    
     # Calculate pairwise match scores
     output = {
         "account_set": dict([

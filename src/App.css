@@ -37,6 +37,10 @@ button {
     
 }
 
+.react-datepicker__navigation {
+    margin-left: 10%;
+    margin-right: 10%;
+}
 
 #descriptionBox {
     height: 100px;
