@@ -1,8 +1,10 @@
-import React, { Component } from 'react';
+import React from 'react';
 import axios from 'axios';
+import ClockLoader from 'react-spinners/ClockLoader';
 import Cookies from 'js-cookie';
-import { Link } from 'react-router-dom';
 import DatePicker from 'react-datepicker';
+import Link from 'react-router-dom';
+import LoadingOverlay from 'react-loading-overlay';
 import "react-datepicker/dist/react-datepicker.css";
 import "../App.css";
 
@@ -46,6 +48,13 @@ const User = props => {
 }
 
 
+// CSS override for spinners
+const spinnerCss = `
+  display: block;
+  margin: 0 auto;
+  border-color: red;
+`;
+
 /// @param props {
 ///   users: {
 ///     <username>: {
@@ -54,7 +63,8 @@ const User = props => {
 //      },
 ///     ...
 ///   },
-///   onToggleAssignment: <username> => {...}
+///   onToggleAssignment: <username> => {...},
+///   isLoading: <boolean> for spinner state
 /// }
 const RecommendedUserList = props => {
   // TODO display only top N & add search bar to filter by username
@@ -72,18 +82,24 @@ const RecommendedUserList = props => {
   return (
     <article>
       <label>Recommended users: </label>
-      <table className="table">
-	<thead className="thead-light">
-	  <tr>
-	    <th>User</th>
-	    <th>Score</th>
-	    <th>Action</th>
-	  </tr>
-	</thead>
-	<tbody>
-	  { displayedUsers }
-	</tbody>
-      </table>
+      <LoadingOverlay
+	active={props.isLoading}
+	spinner={<ClockLoader css={spinnerCss} />}
+	text='Waiting for users...'
+	>
+	<table className="table">
+	  <thead className="thead-light">
+	    <tr>
+	      <th>User</th>
+	      <th>Score</th>
+	      <th>Action</th>
+	    </tr>
+	  </thead>
+	  <tbody>
+	    { displayedUsers }
+	  </tbody>
+	</table>
+      </LoadingOverlay>
     </article>
   );
 }
@@ -104,7 +120,7 @@ const RecommendedUserList = props => {
         - add a task to task collection in db
 */
 
-export default class CreateTask extends Component {
+export default class CreateTask extends React.Component {
   constructor(props) {
     super(props);
 
@@ -131,7 +147,9 @@ export default class CreateTask extends Component {
       manual_added_labels: [],  // [<string>]
       manual_deleted_labels: [],// [<string>]
       labels_is_outdated: false,// <boolean> not allowing submit when labels are outdated
-      recommended_users: {} 	// {<username>: {score: <real>, is_assigned: <boolean>}, ...}
+      labels_is_loading: false, // <boolean> spinner state for retrieving labels
+      recommended_users: {}, 	// {<username>: {score: <real>, is_assigned: <boolean>}, ...}
+      users_is_loading: false,  // <boolean> spinner state for retrieving users
     }
   }
 
@@ -231,6 +249,9 @@ export default class CreateTask extends Component {
 
 
   findLabels() {
+    this.setState({
+      labels_is_loading: true
+    });
     const taskInfo = {
       text: this.state.description
     };
@@ -242,17 +263,23 @@ export default class CreateTask extends Component {
 	    .filter(label => !this.state.manual_deleted_labels.includes(label.label)),
 	  ...this.state.manual_added_labels.map(label => ({label: label, probability: null}))
 	],
+	labels_is_loading: false,
 	labels_is_outdated: false
       }))
       .catch(err => {
 	console.error(err);
-	// TODO spinner off
+	this.setState({
+	  labels_is_loading: false
+	});
 	alert(`Error retrieving labels`);
       })
   }
 
 
   findUsers() {
+    this.setState({
+      users_is_loading: true
+    });
     const taskInfo = {
       model_output: this.state.model_output,
       manual_added_labels: this.state.manual_added_labels,
@@ -273,12 +300,15 @@ export default class CreateTask extends Component {
 	});
 
 	this.setState({
-	  recommended_users: newUsers
+	  recommended_users: newUsers,
+	  users_is_loading: false
 	})
       })
       .catch(err => {
 	console.error(err);
-	// TODO spinner off
+	this.setState({
+	  users_is_loading: false
+	});
 	alert(`Error retrieving recommended users`);
       })
   }
@@ -386,17 +416,22 @@ export default class CreateTask extends Component {
             </article>
           </div>
           <div className="tagBoxView">
-            <article>
+	    <article>
                 <button
 		  type="button"
 		  onClick={this.findLabels.bind(this)}
-		>
+		  >
 		  (Re)evaluate labels
 		</button>
                 <br></br><br></br>
 		<article>
 		  <label>Top labels for this task: </label>
-		  <table className="table">
+		  <LoadingOverlay
+		    active={this.state.labels_is_loading}
+		    spinner={<ClockLoader css={spinnerCss} />}
+		    text='Waiting for labels...'
+		    >
+		    <table className="table">
 		      <thead className="thead-light">
 			  <tr>
 			    <th>String</th>
@@ -426,7 +461,8 @@ export default class CreateTask extends Component {
 				: null
 			    }
 		      </tbody>
-		  </table>
+		    </table>
+		  </LoadingOverlay>
 		</article>
                 <br></br>
                 <br></br>
@@ -436,6 +472,7 @@ export default class CreateTask extends Component {
 		<RecommendedUserList
 		  users={this.state.recommended_users}
 		  onToggleAssignment={this.onToggleAssignment.bind(this)}
+		  isLoading={this.state.users_is_loading}
 		/>
             </article>
           </div>
