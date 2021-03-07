@@ -1,23 +1,15 @@
 {
-  "test1": {
-    "username": "test user 1",
-    "links": {
-      "stack_profile": "https://stackoverflow.com/users/12870/oli",
-      "github_profile": "https://github.com/tbarker2001"
-    }
-  },
-  "test2": {
-    "username": "test user 2",
-    "links": {
-      "stack_profile": "https://stackoverflow.com/users/87234/gmannickg",
-      "github_profile": "https://github.com/tbarker2001"
-    }
-  },
-  "test3": {
-    "username": "test user 3",
-    "links": {
-      "stack_profile": "https://stackoverflow.com/users/6068/pupeno",
-      "github_profile": "https://github.com/tbarker2001"
-    }
+  "test": {
+    "username": "gabor",
+    "links": [
+      {
+        "link_type": "stack_profile",
+        "url": "https://stackoverflow.com/users/13143616/supratik-chaudhuri"
+      },
+      {
+        "link_type": "github_profile",
+        "url": "https://github.com/clementmihailescu"
+      }
+    ]
   }
 }

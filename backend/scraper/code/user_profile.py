@@ -18,11 +18,13 @@ class UserProfile:
         self._github_profile = None
 
         if len(self._links) > 0:
-            if "stack_profile" in user_details["links"]:
-                self._stack_profile = StackOverflowProfile(self._links["stack_profile"])
+            for link in self._links:
 
-            if "github_profile" in user_details["links"]:
-                self._github_profile = GithubProfile(self._links["github_profile"])
+                if "stack_profile" in link["link_type"]:
+                    self._stack_profile = StackOverflowProfile(link["url"])
+
+                if "github_profile" in link["link_type"]:
+                    self._github_profile = GithubProfile(link["url"])
 
     def get_next_stack_tag(self):
         return generator_pop(self._stack_profile.get_top_tags()) if self._stack_profile is not None else None
@@ -54,7 +56,7 @@ if __name__ == "__main__":
     # Was throwing a "nonetype has no attribute getpost" error
     if nasp is not None:
         output = {
-            'text': profile.get_next_asked_stack_post().getPost()
+            'text': profile.get_next_asked_stack_post().get_post()
         }
     else:
         output = {

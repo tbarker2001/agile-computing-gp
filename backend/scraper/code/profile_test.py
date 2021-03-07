@@ -9,7 +9,7 @@ class TestProfile(unittest.TestCase):
         with open("profile_example.json") as json_file:
             self._profiles_json = json.load(json_file)
 
-        self._profiles = {UserProfile(data) for data in self._profiles_json.values()}
+        self._profiles = [UserProfile(data) for data in self._profiles_json.values()]
 
     def test_username(self):
         test_data = [(UserProfile(data), data["username"]) for data in self._profiles_json.values()]
