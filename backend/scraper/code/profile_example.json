@@ -2,19 +2,22 @@
   "test1": {
     "username": "test user 1",
     "links": {
-      "stack_profile": "https://stackoverflow.com/users/12870/oli"
+      "stack_profile": "https://stackoverflow.com/users/12870/oli",
+      "github_profile": "https://github.com/tbarker2001"
     }
   },
   "test2": {
     "username": "test user 2",
     "links": {
-      "stack_profile": "https://stackoverflow.com/users/87234/gmannickg"
+      "stack_profile": "https://stackoverflow.com/users/87234/gmannickg",
+      "github_profile": "https://github.com/tbarker2001"
     }
   },
   "test3": {
     "username": "test user 3",
     "links": {
-      "stack_profile": "https://stackoverflow.com/users/6068/pupeno"
+      "stack_profile": "https://stackoverflow.com/users/6068/pupeno",
+      "github_profile": "https://github.com/tbarker2001"
     }
   }
 }
