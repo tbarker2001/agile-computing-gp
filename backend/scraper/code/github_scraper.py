@@ -1,6 +1,4 @@
 import re
-from urllib.request import urlopen
-
 import requests
 from bs4 import BeautifulSoup
 
@@ -63,10 +61,24 @@ class GithubCommit:
     def get_code(self):
         return self._code
 
+    def get_code_tags(self):
+        tags = set()
+        for line in self._code.splitlines():
+            simple_import = re.match("import (.*)", line)
+            from_import = re.match("from (.*) import (.*)", line)
+
+            if simple_import is not None:
+                tags.update(simple_import.group(1).split(","))
+            elif from_import is not None:
+                tags.add(from_import.group(1))
+                tags.update(from_import.group(2).split(","))
+        return tags
+
     def get_free_text(self):
-        title_tokens = [tag[0] for tag in tokenize_title(self._title)]
+        title_tokens = {tag[0] for tag in tokenize_title(self._title)}
+        title_tokens.update(self.get_code_tags())
         labels_prefix = "__label__ " + " __label__ ".join(title_tokens)
-        free_text = "{labels_prefix} {code}\n".format(labels_prefix=labels_prefix, code=" ".join(self._code_lines))
+        free_text = "{labels_prefix} {}{code}\n".format(labels_prefix=labels_prefix, code=" ".join(self._code_lines))
         freetext = anonymise_text(free_text)
 
         return free_text
@@ -158,14 +170,16 @@ def get_github_issues(username):
 
 def main():
     # GithubIssue("https://github.com/google/blockly/issues/4617")
-    # GithubCommit("https://github.com/tbarker2001/agile-computing-gp/commit/fdce435a01e341f3bc93ea7f3b0e7275ea50adbd")
+    commit = GithubCommit(
+        "https://github.com/tbarker2001/agile-computing-gp/commit/b58aeb1914d8d553ed47b2a247d4c20b87169f71")
+    print(commit.get_code_tags())
     profile = GithubProfile("https://github.com/tbarker2001")  #
     print(profile.get_free_text())
-    commits = profile._issues
+    commits = profile.get_commits()
     i = 0
     item = generator_pop(commits)
-    while (item != None):
-        print(item)
+    while item is not None:
+        print(item.get_code_tags())
         item = generator_pop(commits)
         i += 1
     print(i)
