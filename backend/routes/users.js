@@ -57,7 +57,7 @@ router.route('/signup').post((req, routeres) => {
   const password = req.body.password;
   const email = req.body.email;
   const assigned_tasks = [];
-  const free_text = req.body.free_text,
+  const free_text = req.body.free_text;
   const links = req.body.links;
   const nlp_labels = [];
 
