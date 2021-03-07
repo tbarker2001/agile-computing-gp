@@ -8,8 +8,8 @@ import xx_ent_wiki_sm  # download via python -m spacy download xx_ent_wiki_sm
 
 nlpmultilang = xx_ent_wiki_sm.load()
 nlpeng = en_core_web_sm.load()
-nltk.download('punkt')
-nltk.download('averaged_perceptron_tagger')
+nltk.download('punkt', quiet=True)
+nltk.download('averaged_perceptron_tagger', quiet=True)
 
 TIMEOUT_LIMIT = 32
 

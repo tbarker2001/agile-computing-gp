@@ -7,8 +7,8 @@ import time
 
 import scraper_methods
 
-nltk.download('punkt')
-nltk.download('averaged_perceptron_tagger')
+nltk.download('punkt', quiet=True)
+nltk.download('averaged_perceptron_tagger', quiet=True)
 taggedfilename = "arxiv-tagged-data-2020.txt"
 untaggedfilename = "arxiv-untagged-data-2020.txt"
 
