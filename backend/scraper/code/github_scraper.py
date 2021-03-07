@@ -29,7 +29,7 @@ class GithubIssue:
 
         freetext = "{labels} {post}\n".format(labels=labels_prefix, post=self._post)
 
-        freetext = anonymise_text(freetext)
+        freetext = anonymise_text(freetext).replace("_", " ")
         return freetext
 
 
@@ -79,7 +79,7 @@ class GithubCommit:
         title_tokens.update(self.get_code_tags())
         labels_prefix = "__label__ " + " __label__ ".join(title_tokens)
         free_text = "{labels_prefix} {code}\n".format(labels_prefix=labels_prefix, code=" ".join(self._code_lines))
-        free_text = anonymise_text(free_text)
+        free_text = anonymise_text(free_text).replace("_", " ")
 
         return free_text
 
@@ -124,7 +124,7 @@ class GithubProfile:
                     if item is not None:
                         free_text += item.get_free_text()
 
-        free_text = anonymise_text(free_text)
+        free_text = anonymise_text(free_text).replace("_", " ")
         return free_text
 
 

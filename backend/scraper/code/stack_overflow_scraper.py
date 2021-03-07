@@ -61,7 +61,7 @@ class StackOverflowProfile:
                     elif type(item) == str:
                         free_text += item + '\n'
 
-        free_text = anonymise_text(free_text)
+        free_text = anonymise_text(free_text).replace("_", " ")
         return free_text
 
 
