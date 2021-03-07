@@ -51,16 +51,11 @@ if __name__ == "__main__":
     input_json = json.loads(sys.argv[1])
     profile = UserProfile(input_json)
 
-    nasp = profile.get_next_asked_stack_post()
+    freetext = profile.build_model_data()
 
-    # Was throwing a "nonetype has no attribute getpost" error
-    if nasp is not None:
-        output = {
-            'text': profile.get_next_asked_stack_post().get_post()
-        }
-    else:
-        output = {
-            'text': ""
-        }
-        sys.stdout.write("post not found")
+    output = {
+        'text': freetext
+    }
+
     sys.stdout.write(json.dumps(output))
+
