@@ -7,9 +7,9 @@ import sys
 
 modelDir = os.path.dirname(os.path.abspath(__file__))
 supervisedModelFile = os.path.join(modelDir, '../fastText_demo_model/model.fasttextmodel')
-embeddingsFile = os.path.join(modelDir, '../fastText_demo_model/arxiv.fasttextvecs')
-skillcloudVocabularyFile = os.path.join(modelDir, '../fastText_demo_model/arxiv-skillcloud.txt')
-skillcloudIndexFile = os.path.join(modelDir, '../faiss-demo/skillcloud.index')
+embeddingsFile = os.path.join(modelDir, 'unsupervised_alldata.bin')
+skillcloudVocabularyFile = os.path.join(modelDir, 'skills_unique.txt')
+skillcloudIndexFile = os.path.join(modelDir, 'skillcloud.index')
 
 labelPrefixLength = len("__label__")
 
@@ -53,24 +53,29 @@ if __name__ == "__main__":
     nearestSkillVecs = skillcloudIndex.search(np.array([textVec]), num_labels)
     nearestSkillVecs = [nearestSkillVecs[0][0], nearestSkillVecs[1][0]]
 
-    # Transform distances
-    # TODO this transform determines how the two models are merged, experiment!
-    STRICTNESS_COEFF = 2.5
-    nearestSkillVecs[0] = np.exp(-STRICTNESS_COEFF * nearestSkillVecs[0])
-
     # Merge two sets of labels
     remaining = num_labels
     sup_i, unsup_i = 0, 0
     merged_labels_with_probs = []
 
+    label_set = set()
+
     # TODO handle case where there aren't enough labels
     while remaining > 0:
         if nearestSkillVecs[0][unsup_i] > supervised_label_probs[sup_i]:
+            if skillcloud[nearestSkillVecs[1][unsup_i]] in label_set:
+                unsup_i += 1
+                continue
+            label_set.add(skillcloud[nearestSkillVecs[1][unsup_i]])
             merged_labels_with_probs.append((skillcloud[nearestSkillVecs[1][unsup_i]], nearestSkillVecs[0][unsup_i]))
             unsup_i += 1
             remaining -= 1
         else:
-            merged_labels_with_probs.append((supervised_labels[sup_i][labelPrefixLength:], supervised_label_probs[sup_i]))
+            if supervised_labels[sup_i][labelPrefixLength:].capitalize() in label_set:
+                sup_i += 1
+                continue
+            label_set.add(supervised_labels[sup_i][labelPrefixLength:].capitalize())
+            merged_labels_with_probs.append((supervised_labels[sup_i][labelPrefixLength:].capitalize(), supervised_label_probs[sup_i]))
             sup_i += 1
             remaining -= 1
 
