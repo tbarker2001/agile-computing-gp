@@ -16,7 +16,7 @@ import "../App.css";
 const Label = props => (
   <tr>
     <td>{props.label}</td>
-    <td>{props.probability}</td>
+    <td>{props.probability.toFixed(4)}</td>
     <td>
       <a href="#" onClick={() => props.onManualDelete(props.label)}>X</a>       
     </td>
@@ -35,7 +35,7 @@ const User = props => {
   return (
     <tr>
       <td>{props.username}</td>
-      <td>{props.matchScore}</td>
+      <td>{props.matchScore.toFixed(4)}</td>
       <td>
 	<input
 	  type="checkbox"
@@ -69,12 +69,13 @@ const spinnerCss = `
 const RecommendedUserList = props => {
   // TODO display only top N & add search bar to filter by username
   const displayedUsers = React.Children.toArray(
-    Object.keys(props.users)
-      .map(username =>
+    Object.entries(props.users)
+      .sort((a, b) => a[1].score < b[1].score)
+      .map(([username, attr]) =>
 	<User
 	  username={username}
-	  matchScore={props.users[username].score}
-	  isAssigned={props.users[username].is_assigned}
+	  matchScore={attr.score}
+	  isAssigned={attr.is_assigned}
 	  onToggleAssignment={() => props.onToggleAssignment(username)}
 	/>)
   );
@@ -92,7 +93,7 @@ const RecommendedUserList = props => {
 	    <tr>
 	      <th>User</th>
 	      <th>Score</th>
-	      <th>Action</th>
+	      <th>Assign</th>
 	    </tr>
 	  </thead>
 	  <tbody>
@@ -139,7 +140,7 @@ export default class CreateTask extends React.Component {
       creator_username: username,
       title: '',
       description: '',
-      state: '',
+      state: 'OPEN',
       deadline: null,
       model_output: {},		// output of the NLP model (containing all identified labels)
       top_labels: [], 		// top labels in format {label: <string>, probability: <real>}
