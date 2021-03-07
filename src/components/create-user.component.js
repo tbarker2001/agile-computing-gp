@@ -10,6 +10,7 @@ export default class CreateUser extends Component {
         this.onChangeUsername = this.onChangeUsername.bind(this);
         this.onChangeEmail = this.onChangeEmail.bind(this);
         this.onChangePassword = this.onChangePassword.bind(this);
+        this.onChangeFreeText = this.onChangeFreeText.bind(this);
         this.onSubmit = this.onSubmit.bind(this);
         this.onChangeStackOverflowProfile = this.onChangeStackOverflowProfile.bind(this);
         this.onChangeGithubProfile = this.onChangeGithubProfile.bind(this);
