@@ -20,15 +20,32 @@ export default class Navbar extends Component {
           <li className="navbar-item">
           <Link to="/create" className="nav-link">Create Task</Link>
           </li>
+          <li className="navbar-item">
+          <Link to="/about" className="nav-link">About Us</Link>
+          </li>
           {
             logged_in
             ? React.Children.toArray([
-                <li className="navbar-item">
-                  <a href="#" className="nav-link" onClick={() => {
-                    Cookies.remove("username");
-                    window.location = '/';
-                    }}>Log Out</a>
-                </li>
+              <li className="navbar-item">
+                <a href="#" className="nav-link" onClick={() => {
+                  axios.get('http://localhost:5000/users/get_id_by_username/' + username)
+                  .then(response => {
+                    if (response.data.length > 0) {
+                      var id = response.data;
+                      window.location = '/profile/' + id;
+                    }
+                  })
+                  .catch((error) => {
+                    console.log(error);
+                  })
+                }}>Profile</a>
+              </li>,
+              <li className="navbar-item">
+                <a href="#" className="nav-link" onClick={() => {
+                  Cookies.remove("username");
+                  window.location = '/';
+                  }}>Log Out</a>
+              </li>
             ])
             : React.Children.toArray([
                 <li className="navbar-item">
@@ -39,10 +56,6 @@ export default class Navbar extends Component {
                 </li>
             ])
           }
-          
-          <li className="navbar-item">
-          <Link to="/about" className="nav-link">About Us</Link>
-          </li>
         </ul>
         </div>
       </nav>

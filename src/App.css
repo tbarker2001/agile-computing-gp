@@ -1,8 +1,6 @@
 * {
   box-sizing: border-box;
 }
-html, body, section, div {
-}
 
 .pairBoxes {
     width: 100%;
@@ -29,12 +27,13 @@ article {
 }
 
 button {
+    display: inline-block;
     background-color: #266df0;
     color: white;
-    border-radius: 6px;
-    margin-left: 30%;
-    margin-right: 30%;
-    
+    border-radius: 5px;
+    border-width: 1px;
+    padding: 5px 18px;
+    border-color: #266df0;
 }
 
 .react-datepicker__navigation {

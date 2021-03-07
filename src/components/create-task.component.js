@@ -383,7 +383,7 @@ export default class CreateTask extends React.Component {
                       className="form-control"
                       value={this.state.description}
                       onChange={this.onChangeDescription}
-		      onBlur={this.onBlurDescription}
+                      onBlur={this.onBlurDescription}
                       id="descriptionBox"
                       />
                 </div>
@@ -405,9 +405,9 @@ export default class CreateTask extends React.Component {
                     />
                   </div>
                 </div>
-		<div className="form-group">
-		  <label>Currently assigned users: {this.getAssignedUsers().join()}</label>
-		</div>
+                <div className="form-group">
+                  <label>Currently assigned users: {this.getAssignedUsers().join()}</label>
+                </div>
                 <br></br>
                 <div className="form-group">
                   <input type="submit" value="Create Task" className="btn btn-primary" />
@@ -416,64 +416,64 @@ export default class CreateTask extends React.Component {
             </article>
           </div>
           <div className="tagBoxView">
-	    <article>
-                <button
-		  type="button"
-		  onClick={this.findLabels.bind(this)}
-		  >
-		  (Re)evaluate labels
-		</button>
-                <br></br><br></br>
-		<article>
-		  <label>Top labels for this task: </label>
-		  <LoadingOverlay
-		    active={this.state.labels_is_loading}
-		    spinner={<ClockLoader css={spinnerCss} />}
-		    text='Waiting for labels...'
-		    >
-		    <table className="table">
-		      <thead className="thead-light">
-			  <tr>
-			    <th>String</th>
-			    <th>Score</th>
-			    <th>action</th>
-			  </tr>
-		      </thead>
-		      <tbody>
-			  { this.getTopLabels() }
-			  <tr>
-			    <td>
-			      <input
-				type="text"
-				placeholder="Add new label"
-				value={this.state.add_label_field}
-				onChange={this.onChangeAddLabelField}
-			      />
-			    </td>
-			    <td></td>
-			    <td>
-			      <a href="#" onClick={this.onManualAddLabel.bind(this)}>+</a>
-			    </td>
-			  </tr>
-			    {
-				this.state.manual_deleted_labels.length > 0
-				? <tr>Manually removed: {this.state.manual_deleted_labels.join()}</tr>
-				: null
-			    }
-		      </tbody>
-		    </table>
-		  </LoadingOverlay>
-		</article>
-                <br></br>
-                <br></br>
-                <button type="button" onClick={ this.findUsers.bind(this) }>(Re)evaluate recommended users</button>
-                <br></br>
-                <br></br>
-		<RecommendedUserList
-		  users={this.state.recommended_users}
-		  onToggleAssignment={this.onToggleAssignment.bind(this)}
-		  isLoading={this.state.users_is_loading}
-		/>
+	          <article>
+              <button
+		            type="button"
+		            onClick={this.findLabels.bind(this)}>
+		            (Re)evaluate labels
+		          </button>
+              <br></br>
+              <br></br>
+		          <article>
+                <label>Top labels for this task: </label>
+                <LoadingOverlay
+                  active={this.state.labels_is_loading}
+                  spinner={<ClockLoader css={spinnerCss} />}
+                  text='Waiting for labels...'
+                  >
+                  <table className="table">
+                    <thead className="thead-light">
+                      <tr>
+                        <th>String</th>
+                        <th>Score</th>
+                        <th></th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      { this.getTopLabels() }
+                      <tr>
+                        <td>
+                          <input
+                            type="text"
+                            placeholder="Add new label"
+                            value={this.state.add_label_field}
+                            onChange={this.onChangeAddLabelField}
+                                />
+                          </td>
+                          <td></td>
+                          <td>
+                            <a href="#" onClick={this.onManualAddLabel.bind(this)}>+</a>
+                          </td>
+                      </tr>
+                      {
+                        this.state.manual_deleted_labels.length > 0
+                        ? <tr>Manually removed: {this.state.manual_deleted_labels.join()}</tr>
+                        : null
+                      }
+                    </tbody>
+                  </table>
+                </LoadingOverlay>
+              </article>
+              <br></br>
+              <br></br>
+              <button type="button" onClick={ this.findUsers.bind(this) }>(Re)evaluate recommended users</button>
+              <br></br>
+              <br></br>
+              <RecommendedUserList
+                users={this.state.recommended_users}
+                onToggleAssignment={this.onToggleAssignment.bind(this)}
+                isLoading={this.state.users_is_loading}
+              />
             </article>
           </div>
       </div>
