@@ -52,7 +52,7 @@ if __name__ == "__main__":
     nasp = profile.get_next_asked_stack_post()
 
     # Was throwing a "nonetype has no attribute getpost" error
-    if type(nasp) != type(None):
+    if nasp is not None:
         output = {
             'text': profile.get_next_asked_stack_post().getPost()
         }
@@ -60,5 +60,5 @@ if __name__ == "__main__":
         output = {
             'text': ""
         }
-
+        sys.stdout.write("post not found")
     sys.stdout.write(json.dumps(output))
