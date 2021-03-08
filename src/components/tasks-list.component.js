@@ -11,7 +11,7 @@ const Task = props => (
     <td>{props.task.state.text}</td>
     <td>{props.task.date.substring(0,10)}</td>
     <td>
-      <Link to={"#"}>view (1)</Link> 
+      {props.task.assigned_users.length} 
     </td>
     <td>
       <Link to={"/view/"+props.task._id}>view</Link> | <Link to={"/edit/"+props.task._id}>edit</Link> | <a href="#" onClick={() => { props.deleteTask(props.task._id) }}>delete</a>
@@ -26,7 +26,7 @@ const OpenTask = props => (                 //    OpenTask is the same, but with
     <td>{props.task.description}</td>
     <td>{props.task.date.substring(0,10)}</td>
     <td>
-      <Link to={"#"}>view (1)</Link> 
+    {props.task.assigned_users.length} 
     </td>
     <td>{props.task.score}</td>
     <td>
