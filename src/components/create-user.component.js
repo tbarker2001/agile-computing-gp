@@ -129,6 +129,7 @@ export default class CreateUser extends Component {
                 <div className="pairBoxes">
                     <div className="personalBoxView">
                         <h3>Create your profile</h3>
+                        <br></br>
                         <form onSubmit={this.onSubmit}>
                             <div className="form-group">
                                 <label>Username: </label>

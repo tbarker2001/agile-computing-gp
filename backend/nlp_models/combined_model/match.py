@@ -1,12 +1,12 @@
+import fasttext
 import json
+import numpy as np
+import os
 import sys
 
-def match_score(a_labels, b_labels):
-    common_labels = a_labels.keys() & b_labels.keys()
-    score = 0.0
-    for label in common_labels:
-        score += a_labels[label] * b_labels[label]
-    return score
+modelDir = os.path.dirname(os.path.abspath(__file__))
+embeddingsFile = os.path.join(modelDir, 'unsupervised_alldata.bin')
+
 
 """
     Calculates a match score between each pair of the two arrays of label sets.
@@ -82,7 +82,19 @@ if __name__ == "__main__":
             ]))
             for task_id, attr in task_set.items()
     ])
-    
+
+    # Load embeddings
+    model = fasttext.load_model(embeddingsFile)
+
+    # Calculate representative vectors
+    vecs = {}
+    for any_id in probs.keys():
+        vec = np.zeros(model.get_dimension())
+        for label, prob in probs[any_id].items():
+            vec += prob * model.get_word_vector(label.lower())
+        vec /= np.sqrt(np.inner(vec, vec))
+        vecs[any_id] = vec
+
     # Calculate pairwise match scores
     output = {
         "account_set": dict([
@@ -96,7 +108,7 @@ if __name__ == "__main__":
     }
     for account_id in account_set.keys():
         for task_id in task_set.keys():
-            score = match_score(probs[account_id], probs[task_id])
+            score = np.inner(vecs[account_id], vecs[task_id])
             output["account_set"][account_id][task_id] = {
                 "score": score
             }
