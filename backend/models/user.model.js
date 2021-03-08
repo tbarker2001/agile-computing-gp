@@ -25,6 +25,10 @@ const userSchema = new Schema({
   },
   assigned_tasks: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Task' }],
   links: [linkSchema],
+  free_text: {
+    type: String,
+    required: false
+  },
   nlp_labels: [labelSchema],
   is_admin: {
     type: Boolean,

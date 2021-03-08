@@ -57,6 +57,7 @@ router.route('/signup').post((req, routeres) => {
   const password = req.body.password;
   const email = req.body.email;
   const assigned_tasks = [];
+  const free_text = req.body.free_text;
   const links = req.body.links;
   const nlp_labels = [];
 
@@ -72,14 +73,14 @@ router.route('/signup').post((req, routeres) => {
       console.log("About to generate hash");
 
       bcrypt.hash(password, salt, function (err, res) {
-	const password = res;
-	resolve(password);
+        const password = res;
+        resolve(password);
       });
     });
   });
 
   // In the meantime, scrape the user's profile and extract labels
-  let extractLabelsFromProfiles =
+  let extractLabelsFromProfiles =   /// TODO: scrape free-text as well as links? 
     processProfile({
       username: username,
       links: links
@@ -91,12 +92,13 @@ router.route('/signup').post((req, routeres) => {
       const nlp_labels = results[1];
 
       const newUser = new User({
-	username: username,
-	password: password,
-	email: email,
-	assigned_tasks: assigned_tasks,
-	links: links,
-	nlp_labels: nlp_labels
+        username: username,
+        password: password,
+        email: email,
+        assigned_tasks: assigned_tasks,
+        links: links,
+        free_text: free_text,
+        nlp_labels: nlp_labels
       });
     
       console.log("About to save user to dbs");

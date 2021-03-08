@@ -236,7 +236,6 @@ export default class TasksList extends Component {
   render() {
     return (
       <div>
-
       <div >  
       <div style = {{float:'left'}}>
       <h3>  <Editable
@@ -263,7 +262,7 @@ export default class TasksList extends Component {
     <h3>Tasks -{this.state.logged_in ?  this.state.username : "(logged out)"} </h3>
       </div>
       </div>
-      <div style = {{clear:'both'}}>
+        <article style = {{clear:'both'}}>
         {this.state.logged_in ?
 
             <div>
@@ -327,9 +326,8 @@ export default class TasksList extends Component {
                 </table>
                 <br></br>
             </div>
-
-        : <div> <br></br> <h3>Please log in above to view your tasks</h3> </div>}
-        </div>
+        : <div> <br></br> <h5>Please log in above to view your tasks.</h5> </div>}
+      </article>
       </div>
     )
   }     // want to return obj of type {taskid: [{label: 'git', probability: 0.4}]}

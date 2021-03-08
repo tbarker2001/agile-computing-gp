@@ -1,0 +1,15 @@
+{
+  "test": {
+    "username": "gabor",
+    "links": [
+      {
+        "link_type": "stack_profile",
+        "url": "https://stackoverflow.com/users/13143616/supratik-chaudhuri"
+      },
+      {
+        "link_type": "github_profile",
+        "url": "https://github.com/clementmihailescu"
+      }
+    ]
+  }
+}
