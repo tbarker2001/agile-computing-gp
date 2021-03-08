@@ -212,7 +212,7 @@ export default class TasksList extends Component {
     return (
       <div>
         <h3>Project Tasks - {this.state.logged_in ? this.state.username : "(logged out)"}</h3>
-        
+        <article>
         {this.state.logged_in ?
 
             <div>
@@ -277,7 +277,8 @@ export default class TasksList extends Component {
                 <br></br>
             </div>
 
-        : <div> <br></br> <h3>Please log in above to view your tasks</h3> </div>}
+        : <div> <br></br> <h5>Please log in above to view your tasks.</h5> </div>}
+      </article>
       </div>
     )
   }     // want to return obj of type {taskid: [{label: 'git', probability: 0.4}]}

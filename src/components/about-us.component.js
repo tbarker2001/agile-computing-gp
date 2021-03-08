@@ -5,17 +5,13 @@ export default class AboutUs extends Component{
 
 	render () {
 		return (
-
 			<div className="aboutcontainer">
 				<div className="top">
-				<br></br>
-				<br></br>
-					<h2 className="aboutus">
+					<h3 className="aboutus">
 						About Us
-					</h2>
+					</h3>
 				</div>
 				<div className="bottom">
-					<br></br>
 					<br></br>
 					<p>
 						This is our about us page.		

@@ -18,13 +18,22 @@ article {
 .personalBoxView {
    float: left;
    width: 50%;
-
 }
 
 .tagBoxView {
     float: left;
     width: 50%;
 }
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto Light", "Oxygen",
+    "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
 
 button {
     display: inline-block;
@@ -45,7 +54,24 @@ button {
     height: 100px;
 }
 
+.navbar-icon {
+  margin-right: 8px;
+  opacity: 0.8;
+  border-radius: 30%;
+  -webkit-transition: -webkit-transform 0.2s ease-in-out;
+          transition: transform 0.2s ease-in-out;
+}
 
+.navbar-brand:hover .navbar-icon {
+  -webkit-transform: rotate(7deg);
+          transform: rotate(7deg);
+}
+
+.navbar {
+  -webkit-box-shadow: 0 4px 18px -12px #bbb;
+  -moz-box-shadow: 0 4px 18px -12px #bbb;
+  box-shadow: 0 0px 8px -4px #888;
+}
 
 
 

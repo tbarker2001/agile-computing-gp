@@ -10,22 +10,19 @@ export default class Navbar extends Component {
     var logged_in = (username !== undefined);
 
     return (
-      <nav className="navbar navbar-dark bg-dark navbar-expand-lg">
-        <Link to="/" className="navbar-brand">Task Manager</Link>
+      <nav className="navbar navbar-light bg-white navbar-expand-lg">
+        <Link to="/" className="navbar-brand">
+          <img src="/favicon.png" width="32" height="32" className="d-inline-block align-top navbar-icon" alt=""/>
+          Task Manager
+          </Link>
         <div className="collpase navbar-collapse">
         <ul className="navbar-nav mr-auto">
-          <li className="navbar-item">
-          <Link to="/" className="nav-link">Tasks</Link>
-          </li>
-          <li className="navbar-item">
-          <Link to="/create" className="nav-link">Create Task</Link>
-          </li>
-          <li className="navbar-item">
-          <Link to="/about" className="nav-link">About Us</Link>
-          </li>
           {
             logged_in
             ? React.Children.toArray([
+              <li className="navbar-item">
+              <Link to="/create" className="nav-link">Create Task</Link>
+              </li>,
               <li className="navbar-item">
                 <a href="#" className="nav-link" onClick={() => {
                   axios.get('http://localhost:5000/users/get_id_by_username/' + username)
@@ -56,6 +53,9 @@ export default class Navbar extends Component {
                 </li>
             ])
           }
+          <li className="navbar-item">
+          <Link to="/about" className="nav-link">About Us</Link>
+          </li>
         </ul>
         </div>
       </nav>
