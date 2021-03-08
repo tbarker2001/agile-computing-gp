@@ -83,7 +83,8 @@ router.route('/signup').post((req, routeres) => {
   let extractLabelsFromProfiles =   /// TODO: scrape free-text as well as links? 
     processProfile({
       username: username,
-      links: links
+      links: links,
+      freeText: free_text
     }).then(result => result.model_output);
 
   Promise.all([generatePassword, extractLabelsFromProfiles])
