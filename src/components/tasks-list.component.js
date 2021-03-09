@@ -28,7 +28,7 @@ const OpenTask = props => (                 //    OpenTask is the same, but with
     <td>
       <Link to={"#"}>view (1)</Link> 
     </td>
-    <td>{0.5}</td>
+    <td>{props.score}</td>
     <td>
       <Link to={"/view/"+props.task._id}>view</Link> | <Link to={"/edit/"+props.task._id}>edit</Link> | <a href="#" onClick={() => { props.deleteTask(props.task._id) }}>delete</a>
     </td>
@@ -127,7 +127,6 @@ export default class TasksList extends Component {
 
   // NOT YET TESTED (may be working though)
   loadTaskScores() {
-
     const request = {                                            //   map all_tasks to taskswithscores 
       username: this.state.username,                     //   need scores for each task
       labelled_tasks: this.labelled_open_tasks()                   //   run topTasksForUser to run calculateMatchScores on this user, and all tasks
