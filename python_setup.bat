@@ -1,8 +1,8 @@
 :: This batch file details python setup but may nto completely install everything
 ECHO OFF
 ECHO Setting up python code.
-call conda create -n agilecompenv anaconda
-call conda activate agilecompenv
+call conda create --prefix=%0\..\agilecompenv python anaconda
+call conda activate %0\..\agilecompenv
 call conda config --append channels conda-forge
 
 call conda install --file backend/scraper/requirements.txt

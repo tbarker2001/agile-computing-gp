@@ -15,6 +15,7 @@ class GithubIssue:
         self._title = re.sub("  +|\\n|\\r|…", "", title_text)
 
         self._post = cleanLines(soup.find(class_="edit-comment-hide").findAll("p"))
+        self._post = re.sub("  +|\\n|\\r|…", "", self._post)
 
     def __str__(self):
         return self._title
@@ -22,12 +23,14 @@ class GithubIssue:
     def get_post(self):
         return self._post
 
-    def get_free_text(self):
+    def get_free_text(self, training=False):
         title_tokens = [tag[0] for tag in tokenize_title(self._title)]
 
         labels_prefix = "__label__ " + " __label__ ".join(title_tokens)
-
-        freetext = "{labels} {post}\n".format(labels=labels_prefix, post=self._post)
+        if training:
+            freetext = "{labels} {post}\n".format(labels=labels_prefix, post=self._post)
+        else:
+            freetext = "{title} {post}\n".format(title=self._title, post=self._post)
 
         freetext = anonymise_text(freetext).replace("_", " ")
         return freetext
@@ -61,6 +64,9 @@ class GithubCommit:
     def get_code(self):
         return self._code
 
+    def get_code_lines(self):
+        return self._code_lines
+
     def get_code_tags(self):
         tags = set()
         for line in self._code.splitlines():
@@ -74,11 +80,15 @@ class GithubCommit:
                 tags.update(from_import.group(2).split(","))
         return tags
 
-    def get_free_text(self):
-        title_tokens = {tag[0] for tag in tokenize_title(self._title)}
-        title_tokens.update(self.get_code_tags())
-        labels_prefix = "__label__ " + " __label__ ".join(title_tokens)
-        free_text = "{labels_prefix} {code}\n".format(labels_prefix=labels_prefix, code=" ".join(self._code_lines))
+    def get_free_text(self, training=False):
+        if training:
+            title_tokens = {tag[0] for tag in tokenize_title(self._title)}
+            title_tokens.update(self.get_code_tags())
+            labels_prefix = "__label__ " + " __label__ ".join(title_tokens)
+            free_text = "{labels_prefix} {code}\n".format(labels_prefix=labels_prefix, code=" ".join(self._code_lines))
+        else:
+            free_text = "{title} {code}\n".format(title=self._title, code=" ".join(self._code_lines))
+
         free_text = anonymise_text(free_text).replace("_", " ")
 
         return free_text
