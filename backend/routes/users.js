@@ -120,34 +120,37 @@ router.route('/signup').post((req, routeres) => {
 
 router.route('/update/:id').post((req, res) => {
   User.findById(req.params.id)
-    .then(user => {
-      user.username = req.body.username;
-      user.email = req.body.email;
-      user.free_text = req.body.free_text;
+    .then(doc => {
+      doc.username = req.body.username;
+      doc.email = req.body.email;
+      doc.links = req.body.links;
+      doc.free_text = req.body.free_text;
+      doc.nlp_labels = req.body.nlp_labels;
 
-      user.save()
-        .then(() => res.json('User updated'))
-        .catch(err => res.status(400).json('Error: ' + err));
+      return doc.save()
     })
-    .catch(err => res.status(400).json('Error: ' + err));
+    .then(() => res.json('User updated'))
+    .catch(err => {
+      console.error(err);
+      res.status(400).json('Error: ' + err)
+    });
 });
 
-router.route('/deactivate/').post((req, res) => {
-  User.findOne({"username": req.params.username})
-    .then(user => {
-      user.is_alive = false;
-
-      user.save()
-        .then(() => res.json('User deactivated'))
-        .catch(err => res.status(400).json('Error: ' + err));
+router.route('/deactivate/:username').post((req, res) => {
+  User.findOne({username: req.params.username})
+    .then(doc => {
+      doc.is_alive = false
+      return doc.save();
     })
-    .catch(err => res.status(400).json('Error: ' + err));
-
-  
+    .then(() => res.json('User deactivated'))
+    .catch(err => {
+      console.error(err);
+      res.status(400).json('Error: ' + err)
+    });
 });
 
 
-router.route('/activate/').post((req, res) => {
+router.route('/activate/:username').post((req, res) => {
   User.findOne({"username": req.params.username})
     .then(user => {
       user.is_alive = true;

@@ -13,7 +13,7 @@ class UserProfile:
 
         self._username = user_details.setdefault("username", "")
         self._links = user_details["links"] if "links" in user_details else {}
-        self._user_free_text = user_details["freeText"] if "freeText" in user_details else {}
+        self._user_free_text = user_details["freeText"] if "freeText" in user_details else ""
 
         self._stack_profile = None
         self._github_profile = None

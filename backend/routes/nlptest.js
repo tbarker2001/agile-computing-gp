@@ -15,19 +15,16 @@ router.post('/processTask', (req, res, next) => {
     })
 })
 
-/// @deprecated Not used
-router.post('/processProfile', (req, res, next) => {        // simply a copy of /processTask above
-  processProfile({                                          
-    text: req.body.text
-  })
+router.post('/processProfile', (req, res, next) =>
+  // Re-evaluate labels from profile page
+  processProfile(req.body)
     .then(labels => {
       res.send(labels)
     })
     .catch(err => {
       console.error(err)
       res.status(400).json('Error: ' + err)
-    })
-})
+    }))
 
 // labelled tasks should be a dict like [task_id: [model_output]]
 router.post('/topTasksForUser', (req, res, next) => {

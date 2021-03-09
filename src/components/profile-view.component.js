@@ -10,8 +10,8 @@ import "../App.css";
 
 const Label = props => (
   <tr>
-    <td>{props.label.string}</td>
-    <td>{props.label.score}</td>
+    <td>{props.label}</td>
+    <td>{props.probability}</td>
   </tr>
 )
 
@@ -46,14 +46,11 @@ export default class ProfileView extends Component {
     this.state = {
       username: '',
       email: '',
-      links: [],
       stackOverflowProfileLink: '',
       githubProfileLink: '',
       free_text: '',
       assigned_tasks: [],
-      model_output: {},
       labels: [],
-      top_labels: [],
       is_admin: false,
       is_alive: true
     }
@@ -62,13 +59,20 @@ export default class ProfileView extends Component {
   componentDidMount() {
     axios.get('http://localhost:5000/users/get_by_id/'+this.props.match.params.id)
       .then(response => {
+	let stackLink = "";
+	let githubLink = "";
+	for (var i in response.data.links) {
+	  const link = response.data.links[i];
+	  if (link.link_type == "stack_profile") stackLink = link.url;
+	  if (link.link_type == "github_profile") githubLink = link.url;
+	}
+
         this.setState({
           username: response.data.username,
           free_text: response.data.free_text,
           email: response.data.email,
-          links: response.data.links,
-          stackOverflowProfileLink: response.data.links[0].url,
-          githubProfileLink: response.data.links[1].url,
+          stackOverflowProfileLink: stackLink,
+          githubProfileLink: githubLink,
           labels: response.data.nlp_labels,
           assigned_tasks: response.data.assigned_tasks,
           is_admin: response.data.is_admin,
@@ -99,88 +103,33 @@ export default class ProfileView extends Component {
     })
   }
 
-  onChangeLink1(e) {
-    const link1Updated = this.state.link1;
-    link1Updated.url = e.target.value;
-      this.setState({
-          link1: link1Updated
-      })
-  }
-
-  onChangeLink2(e) {
-    const link2Updated = this.state.link2;
-    link2Updated.url = e.target.value;
-    this.setState({
-        link2: link2Updated
-    })
-  }
-
   onChangeStackOverflowProfile(e) {
-//        this.state.links.push(new linkSchema({link_type: 'stack_profile', url: e.target.value}))
-    let newLinks = []
-    if (e.target.value !== "") {
-        newLinks.push({
-          link_type: 'stack_profile',
-          url: e.target.value
-        });
-    }
-    if (this.state.githubProfileLink !== "") {
-        newLinks.push({
-          link_type: 'github_profile',
-          url: this.state.githubProfileLink
-        });
-    }
     this.setState({
-        stackOverflowProfileLink: e.target.value,
-        links: newLinks
-    })
+      stackOverflowProfileLink: e.target.value
+    });
   }
     
   onChangeGithubProfile(e) {
-//        this.state.links.push(new linkSchema({link_type: 'github_profile', url: e.target.value}))
-    let newLinks = []
-    if (e.target.value !== "") {
-        newLinks.push({
-      link_type: 'github_profile',
-      url: e.target.value
-        });
-    }
-    if (this.state.stackOverflowProfileLink !== "") {
-        newLinks.push({
-      link_type: 'stack_profile',
-      url: this.state.stackOverflowProfileLink
-        });
-    }
     this.setState({
-        githubProfileLink: e.target.value,
-        links: newLinks
-    })
+      githubProfileLink: e.target.value
+    });
   }
 
   labelList() {
-    return React.Children.toArray(this.state.labels.sort(this.labelSort).slice(0,5).map(currentLabel => 
+    let topLabels = this.state.labels.map(x => x);
+    topLabels.sort(this.labelSort);
+    topLabels = topLabels.splice(0, 10);
+
+    return React.Children.toArray(topLabels.map(currentLabel => 
       <Label 
         label={currentLabel.label}
         probability={currentLabel.probability}
         />
       ));
-
- //   return this.state.labels.sort(this.labelSort).slice(0,5).map(currentlabel => {
- //     return <Label label={currentlabel} deleteLabel={this.deleteLabel} key={currentlabel._id}/>;
-  //      return <Label label={currentlabel} key={currentlabel._id}/>; // got rid of the delete
-    
-  }
-
-  getTopLabels() {
-    return React.Children.toArray(this.state.top_labels.map(x =>
-      <Label
-        label={x.label}
-        probability={x.probability}
-      />));
   }
 
   labelSort(a, b) {
-    return a.probability - b.probability;
+    return b.probability - a.probability;
   }
 
   deleteLabel(label){
@@ -194,28 +143,42 @@ export default class ProfileView extends Component {
       username: this.state.username
     }
     axios.post('http://localhost:5000/users/delete', userInfo)
-      .then(res => console.log(res.data));
-
-    window.location = '/';
+      .then(res => {
+	console.log(res.data);
+	window.location = '/';
+      })
+      .catch(err => {
+	console.error(err);
+	alert("Error deleting user.");
+      });
   }
 
   findLabels() {
     this.setState({
       labels_is_loading: true
     });
+    let nonEmptyLinks = [];
+    if (this.state.stackOverflowProfileLink !== "")
+      nonEmptyLinks.push({
+	  link_type: 'stack_profile',
+	  url: this.state.stackOverflowProfileLink
+      });
+    if (this.state.githubProfileLink !== "")
+      nonEmptyLinks.push({
+	  link_type: 'github_profile',
+	  url: this.state.githubProfileLink
+      });
     let userInfo = {
-        text: this.state.free_text,
-        link1: this.state.link1,
-        link2: this.state.link2
+      username: this.state.username,
+      links: nonEmptyLinks,
+      freeText: this.state.free_text
     };
     axios.post('http://localhost:5000/nlptest/processProfile', userInfo)
-      .then(response => this.setState({
-        model_output: response.data.model_output,
-        top_labels: [
-          ...response.data.top_labels
-        ],
-        labels_is_loading: false
-      }))
+      .then(response =>
+	this.setState({
+	  labels: response.data.model_output,
+	  labels_is_loading: false
+	}))
       .catch(err => {
         console.error(err);
         this.setState({
@@ -234,27 +197,37 @@ export default class ProfileView extends Component {
   onSubmit(e) {
     e.preventDefault();
 
-    const links = [];
-    links.push(this.state.link1);
-    links.push(this.state.link2);
-    
+    let nonEmptyLinks = [];
+    if (this.state.stackOverflowProfileLink !== "")
+      nonEmptyLinks.push({
+	  link_type: 'stack_profile',
+	  url: this.state.stackOverflowProfileLink
+      });
+    if (this.state.githubProfileLink !== "")
+      nonEmptyLinks.push({
+	  link_type: 'github_profile',
+	  url: this.state.githubProfileLink
+      });
 
     const user = {
       username: this.state.username,
       email: this.state.email,
-      links: links,
+      links: nonEmptyLinks,
       free_text: this.state.free_text,
-      nlp_labels: this.state.nlp_labels,
-      assigned_tasks: this.state.assigned_tasks,
-      is_admin: this.state.is_admin
+      nlp_labels: this.state.labels,
     }
 
     console.log(user);
 
     axios.post('http://localhost:5000/users/update/' + this.props.match.params.id, user)
-      .then(res => console.log(res.data));
-
-    window.location = '/';
+      .then(res => {
+	console.log(res.data);
+	window.location = '/';
+      })
+      .catch(err => {
+	console.error(err);
+	alert("Error saving user.");
+      });
   }
 
   render() {
@@ -282,7 +255,7 @@ export default class ProfileView extends Component {
                   </input>
                 </div>
                 <div className="form-group"> 
-                <label>Link 1: </label>
+                <label>StackOverflow Account: </label>
                   <input  type="text"
                       className="form-control"
                       value={this.state.stackOverflowProfileLink}
@@ -290,7 +263,7 @@ export default class ProfileView extends Component {
                       />
                 </div>
                 <div className="form-group"> 
-                  <label>Link 2: </label>
+                  <label>GitHub Account: </label>
                   <input  type="text"
                       className="form-control"
                       value={this.state.githubProfileLink}
@@ -309,8 +282,7 @@ export default class ProfileView extends Component {
                   <input  type="text"
                       className="form-control"
                       value={this.state.is_admin}
-                      onChange={this.state.is_admin}
-                      readonly="readonly"
+                      readOnly="readonly"
                       />
                 </div>
                 <div className="form-group">
@@ -320,11 +292,15 @@ export default class ProfileView extends Component {
                   {
                     this.state.is_alive ? React.Children.toArray ([
                       <button type="button" id="red" onClick={ () => {
-                        axios.post('http://localhost:5000/users/deactivate', this.state.username)
+                        axios.post('http://localhost:5000/users/deactivate/' + this.state.username)
+			  .then(res => {console.log(res); window.location = '/';})
+			  .catch(err => {console.error(err); alert("Error deactivating user.");})
                       }}>Deactivate account</button>
                     ]) : React.Children.toArray([
                       <button type="button" id="red" onClick={ () => {
-                        axios.post('http://localhost:5000/users/activate', this.state.username)
+                        axios.post('http://localhost:5000/users/activate/' + this.state.username)
+			  .then(res => {console.log(res); window.location = '/';})
+			  .catch(err => {console.error(err); alert("Error activating user.");})
                       }}>Activate account</button>
                     ])
                   }
@@ -356,7 +332,7 @@ export default class ProfileView extends Component {
                       </tr>
                     </thead>
                     <tbody>
-                      { this.getTopLabels() }
+                      { this.labelList() }
                     </tbody>
                   </table>
                 </LoadingOverlay>
