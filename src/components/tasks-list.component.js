@@ -98,17 +98,15 @@ export default class TasksList extends Component {
 	  user_id: res.data
 	}))
 	.catch(console.error);
-  axios.get('http://localhost:5000/users/get_user' + this.state.username)
-	.then(res => set_state({
+  axios.get('http://localhost:5000/users/get_by_id' + +this.state.user_id)
+	.then(res => this.setState({
 	  is_admin: res.data.is_admin
 	}))
 	.catch(console.error);
-     //
     axios.get('http://localhost:5000/projects/'+this.state.projectid)
-	.then(res => set_state({
-	  projectname: res.data
-	}))
-	.catch(console.error);
+	.then(res => this.setState({
+	  projectname: res.data.title
+	})).catch(console.error);
     }
   }
 
