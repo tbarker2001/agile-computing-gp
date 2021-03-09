@@ -9,12 +9,15 @@ const Task = props => (
     <td>{props.task.title}</td>
     <td>{props.task.description}</td>
     <td>{props.task.state.text}</td>
-    <td>{props.task.date.substring(0,10)}</td>
+    <td>{props.task.deadline.substring(0,10)}</td>
+    <td>{props.task.assigned_users.length}</td>
     <td>
-      <Link to={"#"}>view (1)</Link> 
-    </td>
-    <td>
-      <Link to={"/view/"+props.task._id}>view</Link> | <Link to={"/edit/"+props.task._id}>edit</Link> | <a href="#" onClick={() => { props.deleteTask(props.task._id) }}>delete</a>
+      <Link to={"/view/"+props.task._id}>view</Link> | {
+        props.alreadyAssigned ?
+          <a href="#" onClick={() => { props.unassignSelfTask(props.task) }}>unassign</a>
+        :
+          <a href="#" onClick={() => { props.assignSelfTask(props.task) }}>self-assign</a>
+      }
     </td>
   </tr>
 )
@@ -24,13 +27,11 @@ const OpenTask = props => (                 //    OpenTask is the same, but with
     <td>{props.task.creator_user.username}</td>
     <td>{props.task.title}</td>
     <td>{props.task.description}</td>
-    <td>{props.task.date.substring(0,10)}</td>
+    <td>{props.task.deadline.substring(0,10)}</td>
     <td>{props.score}</td>
+    <td>{props.task.assigned_users.length}</td>
     <td>
-      <Link to={"#"}>view (1)</Link> 
-    </td>
-    <td>
-      <Link to={"/view/"+props.task._id}>view</Link> | <Link to={"/edit/"+props.task._id}>edit</Link> | <a href="#" onClick={() => { props.deleteTask(props.task._id) }}>delete</a>
+      <Link to={"/view/"+props.task._id}>view</Link> | <a href="#" onClick={() => { props.assignSelfTask(props.task) }}>self-assign</a>
     </td>
   </tr>
 )
@@ -55,9 +56,7 @@ export default class TasksList extends Component {
       logged_in: logged_in,
       scores: {}
     }
-
   }
-
 
   componentDidMount() {
     console.log(`Set username to: ${this.state.username}`)
@@ -70,9 +69,10 @@ export default class TasksList extends Component {
         response.data.forEach(task =>
           task.state = task.state ?? {"text": "OPEN", "colour": "#FFFFFF"}
           );
+        response.data.sort((t1, t2) => t1.deadline - t2.deadline)
         set_state({
 	        all_tasks: response.data.map(task =>
-	          <Task task={task} deleteTask={this.deleteTask} key={task._id}/>)
+	          <Task task={task} alreadyAssigned={this.isUserAssigned(task)} unassignSelfTask={(t) => this.unassignTask(this.state.username, t)} assignSelfTask={(t) => this.assignTask(this.state.username, t)} key={task._id}/>)
 	      });
       })
       .then(this.getAssignedTaskList.bind(this))
@@ -117,8 +117,7 @@ export default class TasksList extends Component {
   getAssignedTaskList() {
     this.setState({
       assigned_tasks: this.state.all_tasks.filter(el =>
-	      el.props.task.state.text !== "CLOSED"
-        && this.isUserAssigned(el.props.task))
+	      el.props.alreadyAssigned)
     });
   }
 
@@ -137,7 +136,29 @@ export default class TasksList extends Component {
     });
   }
 
+  assignTask(username, task){
+    //post to API to assign user
+    const request = {                                            //   map all_tasks to taskswithscores 
+      username: username,                     //   need scores for each task
+      task_id: task._id                  //   run topTasksForUser to run calculateMatchScores on this user, and all tasks
+    };    
+    axios.post('http://localhost:5000/tasks/assignUser', request)
+    .then(response => {
+      window.location = '/';
+    })
+  }
 
+  unassignTask(username, task){
+    //post to API to assign user
+    const request = {                                            //   map all_tasks to taskswithscores 
+      username: username,                     //   need scores for each task
+      task_id: task._id                  //   run topTasksForUser to run calculateMatchScores on this user, and all tasks
+    };    
+    axios.post('http://localhost:5000/tasks/unassignUser', request)
+    .then(response => {
+      window.location = '/';
+    })
+  }
 
   getOtherOpenTaskList() {     
     this.loadTaskScores();                      //   want to return a list of OpenTask objects                            
@@ -149,7 +170,7 @@ export default class TasksList extends Component {
           && ! this.isUserAssigned(id.props.task))
 		    .map(id => 
           <OpenTask task={id.props.task} score={this.state.scores[id.props.task._id]}
-					deleteTask={this.deleteTask} key={id.props.task._id}/>)
+					assignSelfTask={(t) => this.assignTask(this.state.username, t)} key={id.props.task._id}/>)
     });
     return;
     // TODO: work out how to sort
@@ -165,7 +186,7 @@ export default class TasksList extends Component {
 
   getCreatedTaskList() {                                              
     this.setState({
-      created_tasks: this.state.all_tasks.filter(id => id.props.task.creator_user.username === this.state.username)
+      created_tasks: this.state.all_tasks.filter(id => id.props.task.state.text !== "CLOSED" && id.props.task.creator_user.username === this.state.username)
     });
     return;
   }
@@ -195,7 +216,7 @@ export default class TasksList extends Component {
                       <th>Title</th>
                       <th>Description</th>
                       <th>State</th>
-                      <th>Date</th>
+                      <th>Deadline</th>
                       <th>Assignees</th>
                       <th>Actions</th>
                     </tr>
@@ -215,7 +236,7 @@ export default class TasksList extends Component {
                       <th>Title</th>
                       <th>Description</th>
                       <th>State</th>
-                      <th>Date</th>
+                      <th>Deadline</th>
                       <th>Assignees</th>
                       <th>Actions</th>
                     </tr>
@@ -234,7 +255,7 @@ export default class TasksList extends Component {
                       <th>Creator</th>
                       <th>Title</th>
                       <th>Description</th>
-                      <th>Date</th>
+                      <th>Deadline</th>
                       <th>Score</th>
                       <th>Assignees</th>
                       <th>Actions</th>
@@ -255,7 +276,7 @@ export default class TasksList extends Component {
                       <th>Title</th>
                       <th>Description</th>
                       <th>State</th>
-                      <th>Date</th>
+                      <th>Deadline</th>
                       <th>Assignees</th>
                       <th>Actions</th>
                     </tr>
