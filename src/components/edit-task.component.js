@@ -178,6 +178,7 @@ export default class EditTask extends Component {
             logged_in: logged_in,
             viewer_username: username,
             is_admin: false,
+            date: new Date(),
         }
     }
 
@@ -196,7 +197,8 @@ export default class EditTask extends Component {
                         deadline: response.data.deadline,
                         nlp_labels: response.data.model_output,
                         manual_added_labels: response.data.manual_added_labels,
-                        manual_deleted_labels: response.data.manual_deleted_labels
+                        manual_deleted_labels: response.data.manual_deleted_labels,
+                        date: response.data.date,
                     }
                 )
             })
@@ -428,7 +430,8 @@ export default class EditTask extends Component {
                     assigned_users: assigned_user_ids,
                     nlp_labels: this.state.model_output,
                     manual_added_labels: this.state.manual_added_labels,
-                    manual_deleted_labels: this.state.manual_deleted_labels
+                    manual_deleted_labels: this.state.manual_deleted_labels,
+                    date: this.state.date,
                 }
 
                 return axios.post('http://localhost:5000/tasks/update' + this.props.match.params.id, task)
