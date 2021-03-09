@@ -226,11 +226,14 @@ export default class TasksList extends Component {
     this.setState({
       projectname: event.target.value               // scores - is a mapping of task_id to score when matched with current user.
   })
-    axios.post('http://localhost:5000/project/update'+this.state.projectid, userInfo)
-    .then(response => {
-      const modelOutput = response.data.model_output;
-      labelledUsers[this.state.user_id] = modelOutput;
-    })
+    const newtitle = {
+    title: this.state.projectname
+  }
+  console.log(newtitle);
+
+    axios.post('http://localhost:5000/projects/update'+this.state.projectid,newtitle)
+    .then(res => console.log(res.data));
+    
 }
 
   render() {
