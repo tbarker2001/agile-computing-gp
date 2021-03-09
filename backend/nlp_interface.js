@@ -38,7 +38,7 @@ let runPython = (dirName, scriptName, args) => new Promise((success, reject) => 
 /// @function processProfile
 /// Scrapes user profile then invokes the NLP model to assign labels
 /// @param {Object} profileInfo The contents of the add user form
-///  { 'username': <username>, 'links':{ 'stack_profile': <url>, 'github_profile': <url>}, }
+///  { 'username': <username>, 'links':[ {link_type: 'stack_profile', url: <url>, { {link_type: 'github_profile', url: <url>} ], freeText: <string> }
 /// @returns {Promise<Object>} The model output on the profile
 ///  { "model_output": <model output>, "data_quality_score": <real>,
 ///    "top_labels": <model_output> (but with fewer labels) }
