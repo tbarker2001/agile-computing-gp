@@ -18,7 +18,7 @@ const Task = props => (
     <td>{props.task.title}</td>
     <td>{props.task.description}</td>
     <td>{props.task.state.text}</td>
-    <td>{props.task.deadline.substring(0,10)}</td>
+    <td>{props.task.deadline == undefined ? null : props.task.deadline.substring(0,10)}</td>
     <td>{props.task.assigned_users.length}</td>
     <td>
       <Link to={"/view/"+props.task._id}>view</Link> | {
@@ -210,7 +210,7 @@ export default class TasksList extends Component {
   // The labels and propabilities of each task, ready for use with NLP api
   // Returns {task_id: [{"label": (String), "probability": (Real)}]}
   labelled_open_tasks() {
-    let labelled_open_tasks = [];
+    let labelled_open_tasks = {};
     this.state.open_tasks.forEach(id => labelled_open_tasks[id.props.task.__id] = id.props.task.nlp_labels);
     return labelled_open_tasks;
   }
