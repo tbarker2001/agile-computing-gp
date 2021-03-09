@@ -75,7 +75,7 @@ export default class ViewTask extends Component {
       .catch((error) => {
         console.log(error);
       })
-
+      document.getElementsByName("readonlyornot").readOnly = true;
   }
 
   labelList() {
@@ -100,10 +100,12 @@ export default class ViewTask extends Component {
       this.setState({
         editing: true
       })
+      document.getElementsByName("readonlyornot").readOnly = true;
     } else if (this.state.editing){
       this.setState({
         editing: false
       })
+      document.getElementsByName("readonlyornot").readOnly = false;
     }
 
   //  window.location = '/edit/' + this.props.match.params.id;
@@ -123,7 +125,8 @@ export default class ViewTask extends Component {
                       className="form-control"
                       value={this.state.creator_username}
                       onChange={this.state.creator_username}
-                      readonly={(this.state.editing) ? "readonly" : false}
+                      name="readonlyornot"
+         //             readonly={(this.state.editing) ? "readonly" : false}
                       >
                   </input>
                 </div>
@@ -134,7 +137,8 @@ export default class ViewTask extends Component {
                       className="form-control"
                       value={this.state.title}
                       onChange={this.state.title}
-                      readonly={(this.state.editing) ? "readonly" : false}
+                      name="readonlyornot"
+          //            readonly="readonly"
                       />
                 </div>
                 <div className="form-group"> 
@@ -144,7 +148,8 @@ export default class ViewTask extends Component {
                       className="form-control"
                       value={this.state.description}
                       onChange={this.state.description}
-                      readonly={(this.state.editing) ? "readonly" : false}
+                      name="readonlyornot"
+          //            readonly="readonly"
                       />
                 </div>
                 <div className="form-group">
@@ -154,7 +159,8 @@ export default class ViewTask extends Component {
                       className="form-control"
                       value={this.state.state}
                       onChange={this.state.state}
-                      readonly={(this.state.editing) ? "readonly" : false}
+                      name="readonlyornot"
+               //       readonly="readonly"
                       />
                 </div>
                 <div className="form-group">
@@ -163,12 +169,13 @@ export default class ViewTask extends Component {
                     <DatePicker
                       selected={this.state.date}
                       onChange={this.state.date}
-                      readonly={(this.state.editing) ? "readonly" : false}
+                      name="readonlyornot"
+           //           readonly="readonly"
                     />
                   </div>
                 </div>
                 <div className="form-group">
-                  <input type="submit" value={(this.state.editing) ? "Back to view" : "Edit Task Details"} className="btn btn-primary" />
+                  <input type="submit" value="Edit Task Details" className="btn btn-primary" />
                 </div>
               </form>
             </article>
