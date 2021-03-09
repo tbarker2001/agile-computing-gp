@@ -1,3 +1,5 @@
+import re
+
 import faiss
 import fasttext
 import json
@@ -30,6 +32,8 @@ if __name__ == "__main__":
     num_labels = input_json['num_labels'] if 'num_labels' in input_json else 25
     num_top_labels = input_json['num_top_labels'] if 'num_top_labels' in input_json else 8
     min_probability = input_json['min_probability'] if 'min_probability' in input_json else 0.0
+
+    text = re.sub("\\r\\n|\\n", " ", text)
 
     # Load supervised model from file
     model = fasttext.load_model(supervisedModelFile)
