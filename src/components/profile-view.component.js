@@ -11,7 +11,9 @@ const Label = props => (
     <td>{props.label.string}</td>
     <td>{props.label.score}</td>
     <td>
-      <a href="#" onClick={() => { props.deleteLabel(props.label._id) }}>X</a>       
+      <a href="#" onClick={() => { 
+        props.deleteLabel(props.label._id) 
+      }}>X</a>       
     </td>
   </tr>
 )
@@ -34,16 +36,15 @@ export default class ProfileView extends Component {
     this.onChangeEmail = this.onChangeEmail.bind(this);
     this.onChangeUsername = this.onChangeUsername.bind(this);
     this.onChangeFreeText = this.onChangeFreeText.bind(this);
-    this.onChangeLink1 = this.onChangeLink1.bind(this);
-    this.onChangeLink2 = this.onChangeLink2.bind(this);
+    this.onChangeStackOverflowProfile = this.onChangeStackOverflowProfile.bind(this);
+    this.onChangeGithubProfile = this.onChangeGithubProfile.bind(this);
 
     this.state = {
       username: '',
       email: '',
-      too_busy: false,
       links: [],
-      link1: '',
-      link2: '',
+      stackOverflowProfileLink: '',
+      githubProfileLink: '',
       free_text: '',
       assigned_tasks: [],
       labels: [],
@@ -59,8 +60,8 @@ export default class ProfileView extends Component {
           free_text: response.data.free_text,
           email: response.data.email,
           links: response.data.links,
-          link1: response.data.links[0],
-          link2: response.data.links[1],
+          stackOverflowProfileLink: response.data.links[0].url,
+          githubProfileLink: response.data.links[1].url,
           labels: response.data.nlp_labels,
           assigned_tasks: response.data.assigned_tasks,
           is_admin: response.data.is_admin
@@ -90,22 +91,72 @@ export default class ProfileView extends Component {
   }
 
   onChangeLink1(e) {
+    const link1Updated = this.state.link1;
+    link1Updated.url = e.target.value;
       this.setState({
-          link1: e.target.value
+          link1: link1Updated
       })
   }
 
   onChangeLink2(e) {
+    const link2Updated = this.state.link2;
+    link2Updated.url = e.target.value;
     this.setState({
-        link2: e.target.value
+        link2: link2Updated
     })
-}
+  }
+
+  onChangeStackOverflowProfile(e) {
+//        this.state.links.push(new linkSchema({link_type: 'stack_profile', url: e.target.value}))
+    let newLinks = []
+    if (e.target.value !== "") {
+        newLinks.push({
+          link_type: 'stack_profile',
+          url: e.target.value
+        });
+    }
+    if (this.state.githubProfileLink !== "") {
+        newLinks.push({
+          link_type: 'github_profile',
+          url: this.state.githubProfileLink
+        });
+    }
+    this.setState({
+        stackOverflowProfileLink: e.target.value,
+        links: newLinks
+    })
+  }
+    
+  onChangeGithubProfile(e) {
+//        this.state.links.push(new linkSchema({link_type: 'github_profile', url: e.target.value}))
+    let newLinks = []
+    if (e.target.value !== "") {
+        newLinks.push({
+      link_type: 'github_profile',
+      url: e.target.value
+        });
+    }
+    if (this.state.stackOverflowProfileLink !== "") {
+        newLinks.push({
+      link_type: 'stack_profile',
+      url: this.state.stackOverflowProfileLink
+        });
+    }
+    this.setState({
+        githubProfileLink: e.target.value,
+        links: newLinks
+    })
+  }
 
   labelList() {
-    return this.state.labels.map(currentlabel => {
+    return this.state.labels.sort(this.labelSort).slice(0,5).map(currentlabel => {
  //     return <Label label={currentlabel} deleteLabel={this.deleteLabel} key={currentlabel._id}/>;
         return <Label label={currentlabel} key={currentlabel._id}/>; // got rid of the delete
     })
+  }
+
+  labelSort(a, b) {
+    return a.probability - b.probability;
   }
 
   deleteLabel(label){
@@ -146,16 +197,19 @@ export default class ProfileView extends Component {
   onSubmit(e) {
     e.preventDefault();
 
-    this.state.links = [];
-    this.state.links.push(this.state.link1);
-    this.state.links.push(this.state.link2);
+    const links = [];
+    links.push(this.state.link1);
+    links.push(this.state.link2);
+    
 
     const user = {
       username: this.state.username,
       email: this.state.email,
-      links: this.state.links,
+      links: links,
       free_text: this.state.free_text,
-      nlp_labels: this.state.nlp_labels
+      nlp_labels: this.state.nlp_labels,
+      assigned_tasks: this.state.assigned_tasks,
+      is_admin: this.state.is_admin
     }
 
     console.log(user);
@@ -194,16 +248,16 @@ export default class ProfileView extends Component {
                 <label>Link 1: </label>
                   <input  type="text"
                       className="form-control"
-                      value={this.state.link1}
-                      onChange={this.onChangeLink1}
+                      value={this.state.stackOverflowProfileLink}
+                      onChange={this.onChangeStackOverflowProfile}
                       />
                 </div>
                 <div className="form-group"> 
                   <label>Link 2: </label>
                   <input  type="text"
                       className="form-control"
-                      value={this.state.link2}
-                      onChange={this.onChangeLink2}
+                      value={this.state.githubProfileLink}
+                      onChange={this.onChangeGithubProfile}
                       />
                 </div>
                 <div className="form-group"> 

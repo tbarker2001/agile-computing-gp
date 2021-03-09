@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import Cookies from 'js-cookie';
 import axios from 'axios';
 
+
 import Editable from "./editable-title.component";
 
 const Project = props =>(
@@ -126,8 +127,8 @@ export default class TasksList extends Component {
     const username = this.state.username;
     this.setState({
       assigned_tasks: this.state.all_tasks.filter(el =>
-	el.props.task.state.text !== "CLOSED" &&
-	el.props.task.assigned_users
+	      el.props.task.state.text !== "CLOSED" &&            // are there not meant to be brackets around this?
+	      el.props.task.assigned_users
 	  .filter(user => {
 	    if (user === null) {
 	      console.error("Null assigned user in task:", el.props.task);
@@ -207,34 +208,40 @@ export default class TasksList extends Component {
     return labelledTasks;
   }
 
-
       
   labelled_user() {
     let labelledUsers = {};                                 // will be a list of size one
-    let userInfo = {
-      text: 'an'                                            // hoping for a free text field in the user schema to fill this
-    };                                                      // other solutions include finding a way to convert a Label list to something of the same form as model output
-    axios.post('http://localhost:5000/nlptest/processProfile', userInfo)
-      .then(response => {
-        const modelOutput = response.data.model_output;
-        labelledUsers[this.state.user_id] = modelOutput;
+    axios.get('http://localhost:5000/users/get_by_username/' + this.state.username)
+      .then(user => {
+        let userInfo = {
+          username: this.state.username,
+          links: user.links,
+          freeText: user.free_text
+        }
+        axios.post('http://localhost:5000/nlptest/processProfile', userInfo)
+          .then(response => {
+            const modelOutput = response.data.model_output;
+            labelledUsers[this.state.user_id] = modelOutput;
+          })
       })
-    
     return labelledUsers;
   }
+
+
   changeProjectnameHandler = (event) => {
     this.setState({
       projectname: event.target.value               // scores - is a mapping of task_id to score when matched with current user.
   })
-    const newtitle = {
+  const newtitle = {
     title: this.state.projectname
   }
   console.log(newtitle);
 
-    axios.post('http://localhost:5000/projects/update'+this.state.projectid,newtitle)
+  axios.post('http://localhost:5000/projects/update'+this.state.projectid,newtitle)
     .then(res => console.log(res.data));
     
 }
+
 
   render() {
     return (
