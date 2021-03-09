@@ -40,7 +40,7 @@ export default class ViewTask extends Component {
           assigned_users: response.data.assigned_users,
           title: response.data.title,
           description: response.data.description,
-          state: response.data.state,
+          state: response.data.state.text,
           date: new Date(response.data.date),
           labels: response.data.nlp_labels
         })   
@@ -169,7 +169,6 @@ export default class ViewTask extends Component {
               <label>Currently assigned users: </label>
                 <table className="table">
                     <tbody>
-                        
                         { this.currentUsersList() }
                     </tbody>
               </table>
