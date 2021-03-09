@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom';
 import Cookies from 'js-cookie';
 import axios from 'axios';
 
-
 import Editable from "./editable-title.component";
 
 const Project = props =>(
@@ -12,7 +11,6 @@ const Project = props =>(
       <input type="text" onChange = {props.TasksList.state.projectname} value={props.TasksList.state.projectname}/>
   </div>
 )
-
 
 const Task = props => (
   <tr style={{"backgroundColor": props.task.state.colour}}>
@@ -38,8 +36,8 @@ const OpenTask = props => (                 //    OpenTask is the same, but with
     <td>{props.task.creator_user.username}</td>
     <td>{props.task.title}</td>
     <td>{props.task.description}</td>
-    <td>{props.task.deadline.substring(0,10)}</td>
     <td>{props.score}</td>
+    <td>{props.task.deadline.substring(0,10)}</td>
     <td>{props.task.assigned_users.length}</td>
     <td>
       <Link to={"/view/"+props.task._id}>view</Link> | <a href="#" onClick={() => { props.assignSelfTask(props.task) }}>self-assign</a>
@@ -311,8 +309,8 @@ export default class TasksList extends Component {
                       <th>Creator</th>
                       <th>Title</th>
                       <th>Description</th>
-                      <th>Deadline</th>
                       <th>Score</th>
+                      <th>Deadline</th>
                       <th>Assignees</th>
                       <th>Actions</th>
                     </tr>
