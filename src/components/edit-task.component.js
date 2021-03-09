@@ -5,31 +5,46 @@ import "react-datepicker/dist/react-datepicker.css";
 import "../App.css";
 import LoadingOverlay from "react-loading-overlay";
 import ClockLoader from "react-spinners/ClockLoader";
+import Cookies from 'js-cookie';
 
 
-const Label = props => (
-    <tr>
-        <td>{props.label.string}</td>
-        <td>{props.label.score}</td>
-        <td>
-            <a href="#" onClick={() => {
-                props.deleteLabel(props.label._id)
-            }}>X</a>
-        </td>
-    </tr>
-)
+const Label = props => {
+    if (props.is_admin || props.is_creator) {
+        return (<tr>
+            <td>{props.label.string}</td>
+            <td>{props.label.score}</td>
+            <td>
+                <a href="#" onClick={() => {
+                    props.deleteLabel(props.label._id)
+                }}>X</a>
+            </td>
+        </tr>);
+    } else {
+        return (<tr>
+            <td>{props.label.string}</td>
+            <td>{props.label.score}</td>
+        </tr>);
+    }
+}
 
-const User = props => (
-    <tr>
-        <td>{props.user.username}</td>
-        <td>{}</td>
-        <td>
-            <a href="#" onClick={() => {
-                props.deleteLabel(props.label._id)
-            }}>Y/N</a>
-        </td>
-    </tr>
-)
+const User = props => {
+    if (props.is_admin || props.is_creator) {
+        return (<tr>
+            <td>{props.user.username}</td>
+            <td>{}</td>
+            <td>
+                <a href="#" onClick={() => {
+                    props.deleteLabel(props.label._id)
+                }}>Y/N</a>
+            </td>
+        </tr>);
+    } else {
+        return (<tr>
+            <td>{props.user.username}</td>
+            <td>{}</td>
+        </tr>);
+    }
+}
 
 // CSS override for spinners
 const spinnerCss = `
@@ -60,6 +75,8 @@ const RecommendedUserList = props => {
                     matchScore={attr.score}
                     isAssigned={attr.is_assigned}
                     onToggleAssignment={() => props.onToggleAssignment(username)}
+                    is_admin={props.is_admin}
+                    is_creator={props.is_creator}
                 />)
     );
 
@@ -87,16 +104,10 @@ const RecommendedUserList = props => {
         </article>
     );
 }
-/// @param props {
-///   can_edit: <boolean>
-///   },
-///   onToggleAssignment: <username> => {...},
-///   isLoading: <boolean> for spinner state
-/// }
-const getLabels = props => {
-    const isCreatorOrAdmin = props.can_edit;
 
-    if (can_edit) {
+const GetLabelsForTable = props => {
+
+    if (props.is_admin || props.is_creator) {
         return (
             <tbody>
             {this.getTopLabels()}
@@ -105,8 +116,8 @@ const getLabels = props => {
                     <input
                         type="text"
                         placeholder="Add new label"
-                        value={this.state.add_label_field}
-                        onChange={this.onChangeAddLabelField}
+                        value={props.add_label_field}
+                        onChange={props.onChangeAddLabelField}
                     />
                 </td>
                 <td></td>
@@ -115,8 +126,8 @@ const getLabels = props => {
                 </td>
             </tr>
             {
-                this.state.manual_deleted_labels.length > 0
-                    ? <tr>Manually removed: {this.state.manual_deleted_labels.join()}</tr>
+                props.manual_deleted_labels.length > 0
+                    ? <tr>Manually removed: {props.manual_deleted_labels.join()}</tr>
                     : null
             }
             </tbody>);
@@ -146,6 +157,9 @@ export default class EditTask extends Component {
         this.onSubmit = this.onSubmit.bind(this);
         this.onChangeAddLabelField = this.onChangeAddLabelField.bind(this);
 
+        var username = Cookies.get("username");
+        var logged_in = (username !== undefined);
+
         this.state = {
             creator_username: '',
             title: '',
@@ -161,10 +175,16 @@ export default class EditTask extends Component {
             labels_is_loading: false, // <boolean> spinner state for retrieving labels
             recommended_users: {}, 	// {<username>: {score: <real>, is_assigned: <boolean>}, ...}
             users_is_loading: false,  // <boolean> spinner state for retrieving users
+            logged_in: logged_in,
+            viewer_username: username,
+            is_admin: false,
         }
     }
 
     componentDidMount() {
+
+        let set_state = this.setState.bind(this);
+
         axios.get('http://localhost:5000/tasks/' + this.props.match.params.id)
             .then(response => {
                 this.setState({
@@ -195,7 +215,14 @@ export default class EditTask extends Component {
             })
             .catch((error) => {
                 console.log(error);
-            })
+            });
+        if (this.state.logged_in) {
+            axios.get('http://localhost:5000/users/get_user' + this.state.username)
+                .then(res => set_state({
+                    is_admin: res.data.is_admin
+                }))
+                .catch(console.error);
+        }
     }
 
     onChangeCreatorUsername(e) {
@@ -285,6 +312,8 @@ export default class EditTask extends Component {
                 label={x.label}
                 probability={x.probability}
                 onManualDelete={this.onManualDeleteLabel.bind(this)}
+                is_admin={this.state.is_admin}
+                is_creator={this.state.username === this.state.creator_username}
             />));
     }
 
@@ -372,13 +401,6 @@ export default class EditTask extends Component {
         return this.state.users;      // TODO: same as labelList above, but for putting recommended users into its table from this.state.users
     }
 
-    isAdminOrCreator() {
-        var username = Cookies.get("username");
-        const current_user = axios.get('http://localhost:5000/users/get_by_username/' + username);
-        const is_admin = current_user.is_admin;
-        return is_admin || this.state.creator_username === username;
-    }
-
     onSubmit(e) {
         e.preventDefault();
 
@@ -424,9 +446,6 @@ export default class EditTask extends Component {
     }
 
     render() {
-
-        const admin_or_creator = this.isAdminOrCreator();
-
 
         return (
             <div>
@@ -517,8 +536,11 @@ export default class EditTask extends Component {
                                             <th></th>
                                         </tr>
                                         </thead>
-                                        <getLabels
-                                            isAdminOrCreator={admin_or_creator}
+                                        <GetLabelsForTable is_admin={this.state.is_admin}
+                                                           is_creator={this.state.username === this.state.creator_username}
+                                                           manual_deleted_labels={this.state.manual_deleted_labels}
+                                                           add_label_field={this.state.add_label_field}
+                                                           onChangeAddLabelField={this.onChangeAddLabelField}
                                         />
                                     </table>
                                 </LoadingOverlay>
@@ -533,6 +555,8 @@ export default class EditTask extends Component {
                                 users={this.state.recommended_users}
                                 onToggleAssignment={this.onToggleAssignment.bind(this)}
                                 isLoading={this.state.users_is_loading}
+                                is_admin={this.state.is_admin}
+                                is_creator={this.state.username === this.state.creator_username}
                             />
                         </article>
                     </div>
