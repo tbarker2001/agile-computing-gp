@@ -5,7 +5,7 @@ import axios from 'axios';
 
 const Task = props => (
   <tr>
-    <td>{props.task.creator_username}</td>
+    <td>{props.task.creator_user.username}</td>
     <td>{props.task.title}</td>
     <td>{props.task.description}</td>
     <td>{props.task.state.text}</td>
@@ -21,14 +21,14 @@ const Task = props => (
                                             //     {if (props.task.score > 0.24){style={background-colour: #4DED30}}
 const OpenTask = props => (                 //    OpenTask is the same, but with the recommendation score
   <tr>                                      
-    <td>{props.task.creator_username}</td>
+    <td>{props.task.creator_user.username}</td>
     <td>{props.task.title}</td>
     <td>{props.task.description}</td>
     <td>{props.task.date.substring(0,10)}</td>
     <td>
       <Link to={"#"}>view (1)</Link> 
     </td>
-    <td>{props.task.score}</td>
+    <td>{0.5}</td>
     <td>
       <Link to={"/view/"+props.task._id}>view</Link> | <Link to={"/edit/"+props.task._id}>edit</Link> | <a href="#" onClick={() => { props.deleteTask(props.task._id) }}>delete</a>
     </td>
@@ -67,13 +67,15 @@ export default class TasksList extends Component {
     axios.get('http://localhost:5000/tasks/')
       .then(response => {
         set_state({
-	  all_tasks: response.data.map(task =>
-	    <Task task={task} deleteTask={this.deleteTask} key={task._id}/>)
-	})
+	        all_tasks: response.data.map(task =>
+	          <Task task={task} deleteTask={this.deleteTask} key={task._id}/>)
+	      });
       })
       .then(this.getAssignedTaskList.bind(this))
       .then(this.getOpenTaskList.bind(this))
       .then(this.getClosedTaskList.bind(this))
+      .then(
+        console.log("Set tasks to " + JSON.stringify(this.state.all_tasks)))
       .catch((error) => {
         console.log(error);
       })
@@ -123,9 +125,24 @@ export default class TasksList extends Component {
     })
   }
 
+  // NOT YET TESTED (may be working though)
+  loadTaskScores() {
 
+    const request = {                                            //   map all_tasks to taskswithscores 
+      username: this.state.username,                     //   need scores for each task
+      labelled_tasks: this.labelled_open_tasks()                   //   run topTasksForUser to run calculateMatchScores on this user, and all tasks
+    };                                                         
+  
+    axios.post('http://localhost:5000/nlptest/topTasksForUser', request)
+    .then(response => {
+      this.setState({
+          scores: response.data               // scores - is a mapping of task_id to score when matched with current user.
+      });
+    });
+  }
 
-  getOpenTaskList() {                           //   want to return a list of OpenTask objects                            
+  getOpenTaskList() {     
+    this.loadTaskScores();                      //   want to return a list of OpenTask objects                            
     this.setState({
       open_tasks: this.state.all_tasks
 		    .filter(id => id.props.task.state.text === "OPEN")
@@ -133,26 +150,8 @@ export default class TasksList extends Component {
 					   deleteTask={this.deleteTask} key={id.props.task._id}/>)
     });
     return;
-    // TODO delete this stuff or fix this function??
-    const request = {                                            //   map all_tasks to taskswithscores 
-        labelled_user: this.labelled_user(),                     //   need scores for each task
-        labelled_tasks: this.labelled_open_tasks()                   //   run topTasksForUser to run calculateMatchScores on this user, and all tasks
-     };                                                         
-    
-    axios.post('http://localhost:5000/nlptest/topTasksForUser', request)
-      .then(response => {
-        this.setState({
-            scores: response.data               // scores - is a mapping of task_id to score when matched with current user.
-        })
-      });
-
-    const openTaskObjectsList = this.state.all_tasks.map(currenttask => {
-      return <OpenTask task={currenttask} score={this.state.scores[currenttask._id]} deleteTask={this.deleteTask} key={currenttask._id}/>;
-    });
-
-    return openTaskObjectsList;              // TODO: work out how to sort
+    // TODO: work out how to sort
   }
-
 
 
   getClosedTaskList() {                                              
@@ -160,52 +159,16 @@ export default class TasksList extends Component {
       closed_tasks: this.state.all_tasks.filter(id => id.props.task.state.text === "CLOSED")
     });
     return;
-    // TODO delete this stuff
-    this.state.all_tasks.forEach(function (currenttask) {    
-      if (currenttask.state.text == "CLOSED") {  
-        this.state.closed_tasks.add(currenttask);
-      }
-    })
-    return this.state.closed_tasks.map(currenttask => {
-      return <Task task={currenttask} deleteTask={this.deleteTask} key={currenttask._id}/>;
-    })
   }
 
   
-  
+  // The labels and propabilities of each task, ready for use with NLP api
+  // Returns {task_id: [{"label": (String), "probability": (Real)}]}
   labelled_open_tasks() {
-    let labelledTasks = {};                                    
-    this.state.all_tasks.forEach(function (currenttask) {
-      if (currenttask.state.text == "OPEN") {
-        let taskInfo = {
-          text: currenttask.description
-        };
-        axios.post('http://localhost:5000/nlptest/processTask', taskInfo)
-          .then(response => {
-            const modelOutput = response.data.model_output;
-            labelledTasks[currenttask._id] = modelOutput;
-          })
-      }
-    })
-    return labelledTasks;
+    let labelled_open_tasks = [];
+    this.state.open_tasks.forEach(id => labelled_open_tasks[id.props.task.__id] = id.props.task.nlp_labels);
+    return labelled_open_tasks;
   }
-
-
-      
-  labelled_user() {
-    let labelledUsers = {};                                 // will be a list of size one
-    let userInfo = {
-      text: 'an'                                            // hoping for a free text field in the user schema to fill this
-    };                                                      // other solutions include finding a way to convert a Label list to something of the same form as model output
-    axios.post('http://localhost:5000/nlptest/processProfile', userInfo)
-      .then(response => {
-        const modelOutput = response.data.model_output;
-        labelledUsers[this.state.user_id] = modelOutput;
-      })
-    
-    return labelledUsers;
-  }
-
 
 
   render() {
@@ -214,9 +177,7 @@ export default class TasksList extends Component {
         <h3>Project Tasks - {this.state.logged_in ? this.state.username : "(logged out)"}</h3>
         <article>
         {this.state.logged_in ?
-
             <div>
-
                 <br></br>
                 <h3>Assigned tasks</h3>
                 <table className="table">       
@@ -247,6 +208,7 @@ export default class TasksList extends Component {
                       <th>Description</th>
                       <th>Date</th>
                       <th>Recommendation</th>
+                      <th>Score</th>
                       <th>Actions</th>
                     </tr>
                   </thead>
@@ -282,6 +244,4 @@ export default class TasksList extends Component {
       </div>
     )
   }     // want to return obj of type {taskid: [{label: 'git', probability: 0.4}]}
-
- 
 }

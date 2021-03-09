@@ -6,6 +6,9 @@ let User = require('../models/user.model');
 
 router.route('/').get((req, res) => {
   Task.find()
+    .populate('creator_user')
+    .populate('state')
+    .populate('assigned_users')
     .then(tasks => Promise.all(
       tasks.map(task =>
 	Promise.all(
