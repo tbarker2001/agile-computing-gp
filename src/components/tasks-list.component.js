@@ -90,7 +90,7 @@ export default class TasksList extends Component {
       .catch((error) => {
         console.log(error);
       })
-    
+    //TODO:merge these into 1 axios request if the second request is correct subject to testing.
     if (this.state.logged_in){                                 // If logged in, store user_id in this.state
       axios.get('http://localhost:5000/users/get_id_by_username/' + this.state.username)
 	.then(res => set_state({
@@ -102,6 +102,7 @@ export default class TasksList extends Component {
 	  is_admin: res.data.is_admin
 	}))
 	.catch(console.error);
+     //
     axios.get('http://localhost:5000/projects/'+this.state.projectid)
 	.then(res => set_state({
 	  projectname: res.data
@@ -233,6 +234,7 @@ export default class TasksList extends Component {
       projectname: event.target.value           
   })
   const newtitle = {
+
     title: this.state.projectname
   }
   console.log(newtitle);
@@ -247,7 +249,6 @@ export default class TasksList extends Component {
     
     return (
       <div>
-
       <div >  
       <div style = {{float:'left'}}>
       <h3>  <Editabletitle
@@ -277,7 +278,7 @@ export default class TasksList extends Component {
     <h3>Tasks -{this.state.logged_in ?  this.state.username : "(logged out)"} </h3>
       </div>
       </div>
-      <div style = {{clear:'both'}}>
+        <article style = {{clear:'both'}}>
         {this.state.logged_in ?
 
             <div>
@@ -341,9 +342,8 @@ export default class TasksList extends Component {
                 </table>
                 <br></br>
             </div>
-
-        : <div> <br></br> <h3>Please log in above to view your tasks</h3> </div>}
-        </div>
+        : <div> <br></br> <h5>Please log in above to view your tasks.</h5> </div>}
+      </article>
       </div>
     )
   }     // want to return obj of type {taskid: [{label: 'git', probability: 0.4}]}

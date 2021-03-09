@@ -20,8 +20,6 @@ describe('NLP pipeline', () => {
     it('should return a list of labels', () =>
       processTask({
 	"text": "When we push commits on to a new branch the git history is always broken",
-//      "num_labels": 4,
-//      "min_probability": 0.01
       })
       .then(labels => labels["model_output"][0]["label"])
     )
@@ -29,22 +27,23 @@ describe('NLP pipeline', () => {
   })
 
 
-  describe('#overrideTaskLabels', () => {
-    it('should not throw', () =>
-      // TODO
-      overrideTaskLabels({})
-    )
-  })
-
   describe('#calculateMatchScores', () => {
     it('should calculate scores with a single pair', () => {
       const tasks = {
-	  "task1": [
-	      {
-		  "label": "apple",
-		  "probability": 0.7
-	      }
-	  ]
+	  "task1": {
+	      "model_output": [
+		  {
+		      "label": "apple",
+		      "probability": 0.7
+		  },
+		  {
+		      "label": "pear",
+		      "probability": 0.3
+		  }
+	      ],
+	      "manual_added_labels": ["banana"],
+	      "manual_deleted_labels": ["pear"]
+	  }
       };
       const profiles = {
 	  "acc1": [
@@ -61,7 +60,8 @@ describe('NLP pipeline', () => {
       })
     })
 
-    it('should consume model output from processTask & processProfile', () =>
+    it('should consume model output from processTask & processProfile', () => {
+      throw new Error("No longer a requirement, this fails");
       Promise.all([
 	processProfile({
 	      "username": "oli1",
@@ -83,7 +83,7 @@ describe('NLP pipeline', () => {
 	  assert.deepEqual(scores["account_set"]["acc1"]["task1"], scores["task_set"]["task1"]["acc1"])
 	})
       )
-    )
+    })
   })
 
 });

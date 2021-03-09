@@ -1,4 +1,5 @@
 var router = require('express').Router();
+var User = require('../models/user.model');
 const { processProfile, processTask, calculateMatchScores } = require('../nlp_interface');
 
 router.post('/processTask', (req, res, next) => {
@@ -8,9 +9,13 @@ router.post('/processTask', (req, res, next) => {
     .then(labels => {
       res.send(labels)
     })
-    .catch(console.error);
+    .catch(err => {
+      console.error(err)
+      res.status(400).json('Error: ' + err)
+    })
 })
 
+/// @deprecated Not used
 router.post('/processProfile', (req, res, next) => {        // simply a copy of /processTask above
   processProfile({                                          
     text: req.body.text
@@ -18,7 +23,10 @@ router.post('/processProfile', (req, res, next) => {        // simply a copy of 
     .then(labels => {
       res.send(labels)
     })
-    .catch(console.error);
+    .catch(err => {
+      console.error(err)
+      res.status(400).json('Error: ' + err)
+    })
 })
 
 router.post('/topTasksForUser', (req, res, next) => {
@@ -28,22 +36,28 @@ router.post('/topTasksForUser', (req, res, next) => {
 
   calculateMatchScores(labelled_tasks, labelled_user)
     .then(result => res.send(result.account_set[labelled_user.__id]))
-    .catch(console.error)
+    .catch(err => {
+      console.error(err)
+      res.status(400).json('Error: ' + err)
+    })
 })
 
 router.post('/topUsersForTask', (req, res, next) => {
-  const taskId = req.body.task_id;
-  const taskModelOutput = req.body.task_model_output;
-  let input = {};
-  input[taskId] = taskModelOutput;
-  // TODO make query to db
-  const hardcodedUserOutputs = {
-    david: [{label: 'git', probability: 0.8}],
-    bob: [{label: 'git', probability: 0.3}, {label: 'css', probability: 1}]
+  const tasks = {
+    thistask: req.body
   };
-  calculateMatchScores(input, hardcodedUserOutputs)
-    .then(result => res.send(result.task_set[taskId]))
-    .catch(console.error)
+
+  User.find()
+    .then(users => Object.fromEntries(users.map(user => [
+	user.username,
+	user.nlp_labels
+    ])))
+    .then(users => calculateMatchScores(tasks, users))
+    .then(result => res.send(result.task_set.thistask))
+    .catch(err => {
+      console.error(err)
+      res.status(400).json('Error: ' + err)
+    })
 })
 
 module.exports = router;

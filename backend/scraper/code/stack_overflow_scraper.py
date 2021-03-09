@@ -1,13 +1,11 @@
 import re
 import time
-
-from bs4 import BeautifulSoup
-from urllib.request import urlopen
-import requests
-
 from enum import Enum
 
-from parsing_methods import cleanLines, generator_pop
+import requests
+from bs4 import BeautifulSoup
+
+from scraper_methods import cleanLines, generator_pop, anonymise_text, get_html
 
 
 class PostMode(Enum):
@@ -62,16 +60,16 @@ class StackOverflowProfile:
                         free_text += item.get_free_text() + '\n'
                     elif type(item) == str:
                         free_text += item + '\n'
+
+        free_text = anonymise_text(free_text).replace("_", " ")
         return free_text
 
 
 class StackOverflowPost:
 
     def __init__(self, url, session=None):
-        if session is None:
-            html = urlopen(url).read()
-        else:
-            html = session.get(url).text
+
+        html = get_html(url, session)
         soup = BeautifulSoup(html, "lxml")
 
         self._post_tags = {tag.text for tag in soup.find(class_="post-taglist").findAll(class_="post-tag")}
@@ -96,10 +94,11 @@ class StackOverflowPost:
         return self._answers
 
     def get_free_text(self):
-        #todo consider tokenising title and added that as tags
+        # todo consider tokenising title and added that as tags
         labels_prefix = "__label__ " + " __label__ ".join(self._post_tags)
-        free_text = "{labels} {post} {answers}".format(labels=labels_prefix, post=self._post,
-                                                       answers=" ".join(self._answers))
+        free_text = "{labels} {title} {post} {answers}".format(labels=labels_prefix, title=self._title, post=self._post,
+                                                               answers=" ".join(self._answers))
+        free_text = anonymise_text(free_text)
         return free_text
 
     def __str__(self):
@@ -152,9 +151,9 @@ def get_stack_overflow_tags(url):
 
 
 def main():
-    filepath = '../../../models/fastText_demo_model/stackoverflowdata.txt'
+    filepath = 'stackoverflowdata2.txt'
     start_time = time.time()
-    write_posts_to_file(100, filepath)
+    write_posts_to_file(10000, filepath)
     end_time = time.time()
     print(end_time - start_time)
 
