@@ -110,7 +110,7 @@ const GetLabelsForTable = props => {
     if (props.is_admin || props.is_creator) {
         return (
             <tbody>
-            {this.getTopLabels()}
+            {props.getTopLabels()}
             <tr>
                 <td>
                     <input
@@ -122,7 +122,7 @@ const GetLabelsForTable = props => {
                 </td>
                 <td></td>
                 <td>
-                    <a href="#" onClick={this.onManualAddLabel.bind(this)}>+</a>
+                    <a href="#" onClick={props.onManualAddLabel}>+</a>
                 </td>
             </tr>
             {
@@ -135,10 +135,10 @@ const GetLabelsForTable = props => {
     } else {
         return (
             <tbody>
-            {this.getTopLabels()}
+            {props.getTopLabels()}
             {
-                this.state.manual_deleted_labels.length > 0
-                    ? <tr>Manually removed: {this.state.manual_deleted_labels.join()}</tr>
+                props.manual_deleted_labels.length > 0
+                    ? <tr>Manually removed: {props.manual_deleted_labels.join()}</tr>
                     : null
             }
             </tbody>);
@@ -544,6 +544,8 @@ export default class EditTask extends Component {
                                                            manual_deleted_labels={this.state.manual_deleted_labels}
                                                            add_label_field={this.state.add_label_field}
                                                            onChangeAddLabelField={this.onChangeAddLabelField}
+                                                           getTopLabels={this.getTopLabels}
+                                                           onManualAddLabel={this.onManualAddLabel.bind(this)}
                                         />
                                     </table>
                                 </LoadingOverlay>
@@ -560,6 +562,7 @@ export default class EditTask extends Component {
                                 isLoading={this.state.users_is_loading}
                                 is_admin={this.state.is_admin}
                                 is_creator={this.state.username === this.state.creator_username}
+
                             />
                         </article>
                     </div>
