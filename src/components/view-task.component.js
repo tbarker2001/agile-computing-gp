@@ -36,7 +36,7 @@ export default class ViewTask extends Component {
     axios.get('http://localhost:5000/tasks/'+this.props.match.params.id)
       .then(response => {
         this.setState({
-          creator_username: response.data.creator_username,
+          creator_username: response.data.creator_user.username,
           assigned_users: response.data.assigned_users,
           title: response.data.title,
           description: response.data.description,

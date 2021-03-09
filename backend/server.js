@@ -3,6 +3,8 @@ const cors = require('cors');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 let State = require('./models/state.model');
+let Task = require('./models/task.model');
+var ObjectId = require('mongodb').ObjectID;
 
 require('dotenv').config();
 
@@ -38,15 +40,43 @@ State.find()
     if (states.length == 0) {
       const open = new State({
 	text: "OPEN",
-	colour: "green"
+	colour: "#AADDAA"
       });
       const closed = new State({
 	text: "CLOSED",
-	colour: "red"
+	colour: "#DDAAAA"
       });
       Promise.all([
 	open.save(),
 	closed.save()
+      ]).catch(console.error);
+    }
+  })
+  .catch(console.error);
+
+// If no tasks are saved, create tests
+Task.find()
+  .then(tasks => {
+    if (tasks.length == 0) {
+      const test1 = new Task({
+        title: "Test task",
+        description: "Test description",
+      
+        state: ObjectId("604622910a42ca3ee400063f"), //open
+      
+        creator_user: ObjectId("603f9540f5d0582828b665d3"), //dan
+        assigned_users: [ObjectId("603ae42c75ad0e13d8fe13b0")],
+      
+        date: Date("2021-03-03T13:55:12.689Z"),
+        deadline: Date("2021-06-06T13:55:12.689Z"),
+      
+        nlp_labels: [{label: "computing", probability: 1.0}],
+        manual_deleted_labels: [],
+        manual_added_labels: [],
+      });
+
+      Promise.all([
+        test1.save(),
       ]).catch(console.error);
     }
   })
