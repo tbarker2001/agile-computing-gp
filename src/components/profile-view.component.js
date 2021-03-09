@@ -59,13 +59,13 @@ export default class ProfileView extends Component {
   componentDidMount() {
     axios.get('http://localhost:5000/users/get_by_id/'+this.props.match.params.id)
       .then(response => {
-	let stackLink = "";
-	let githubLink = "";
-	for (var i in response.data.links) {
-	  const link = response.data.links[i];
-	  if (link.link_type == "stack_profile") stackLink = link.url;
-	  if (link.link_type == "github_profile") githubLink = link.url;
-	}
+        let stackLink = "";
+        let githubLink = "";
+        for (var i in response.data.links) {
+          const link = response.data.links[i];
+          if (link.link_type == "stack_profile") stackLink = link.url;
+          if (link.link_type == "github_profile") githubLink = link.url;
+        }
 
         this.setState({
           username: response.data.username,

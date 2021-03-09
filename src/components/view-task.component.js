@@ -3,6 +3,7 @@ import axios from 'axios';
 import DatePicker from 'react-datepicker';
 import "react-datepicker/dist/react-datepicker.css";
 import "../App.css";
+import Cookies from 'js-cookie';
 
 
 const Label = props => (
@@ -23,12 +24,15 @@ export default class ViewTask extends Component {
 
     this.state = {
       creator_username: '',
+      username: '',
       assigned_users: '',
       title: '',
       description: '',
       state: '',
       date: new Date(),
-      labels: []
+      labels: [],
+      entitled: false,
+      editing: false
     }
   }
 
@@ -37,17 +41,28 @@ export default class ViewTask extends Component {
       .then(response => {
         this.setState({
           creator_username: response.data.creator_user.username,
+          username: Cookies.get("username"),
           assigned_users: response.data.assigned_users,
           title: response.data.title,
           description: response.data.description,
           state: response.data.state,
           date: new Date(response.data.date),
-          labels: response.data.nlp_labels
+          labels: response.data.nlp_labels,
         })   
       })
       .catch(function (error) {
         console.log(error);
       })
+
+    axios.get('http://localhost:5000/users/get_by_username/'+this.state.username)
+    .then(response => {
+      this.setState({
+        entitled: !(response.data.is_alive) && (response.data.is_admin || this.state.username == this.state.creator_username),
+      })   
+    })
+    .catch(function (error) {
+      console.log(error);
+    })
 
     axios.get('http://localhost:5000/users/')
       .then(response => {
@@ -81,9 +96,17 @@ export default class ViewTask extends Component {
   }
 
   onSubmit() {
-   
+    if (!this.state.editing && this.state.entitled){
+      this.setState({
+        editing: true
+      })
+    } else if (this.state.editing){
+      this.setState({
+        editing: false
+      })
+    }
 
-    window.location = '/edit/' + this.props.match.params.id;
+  //  window.location = '/edit/' + this.props.match.params.id;
   }
 
   render() {
@@ -100,8 +123,8 @@ export default class ViewTask extends Component {
                       className="form-control"
                       value={this.state.creator_username}
                       onChange={this.state.creator_username}
-                      readonly="readonly">
-                      
+                      readonly={(this.state.editing) ? "readonly" : false}
+                      >
                   </input>
                 </div>
                 <div className="form-group">
@@ -111,7 +134,7 @@ export default class ViewTask extends Component {
                       className="form-control"
                       value={this.state.title}
                       onChange={this.state.title}
-                      readonly="readonly"
+                      readonly={(this.state.editing) ? "readonly" : false}
                       />
                 </div>
                 <div className="form-group"> 
@@ -121,7 +144,7 @@ export default class ViewTask extends Component {
                       className="form-control"
                       value={this.state.description}
                       onChange={this.state.description}
-                      readonly="readonly"
+                      readonly={(this.state.editing) ? "readonly" : false}
                       />
                 </div>
                 <div className="form-group">
@@ -131,7 +154,7 @@ export default class ViewTask extends Component {
                       className="form-control"
                       value={this.state.state}
                       onChange={this.state.state}
-                      readonly="readonly"
+                      readonly={(this.state.editing) ? "readonly" : false}
                       />
                 </div>
                 <div className="form-group">
@@ -140,12 +163,12 @@ export default class ViewTask extends Component {
                     <DatePicker
                       selected={this.state.date}
                       onChange={this.state.date}
-                      readonly="readonly"
+                      readonly={(this.state.editing) ? "readonly" : false}
                     />
                   </div>
                 </div>
                 <div className="form-group">
-                  <input type="submit" value="Edit Task Details" className="btn btn-primary" />
+                  <input type="submit" value={(this.state.editing) ? "Back to view" : "Edit Task Details"} className="btn btn-primary" />
                 </div>
               </form>
             </article>
