@@ -3,7 +3,9 @@ import { Link } from 'react-router-dom';
 import Cookies from 'js-cookie';
 import axios from 'axios';
 
-import Editable from "./editable-title.component";
+import Editabletitle from "./editable-title.component";
+
+
 
 const Project = props =>(
   <div> 
@@ -62,9 +64,10 @@ export default class TasksList extends Component {
       created_tasks: [],
       username: username,
       user_id: '',
+      is_admin:false,
       logged_in: logged_in,
       scores: {},
-      projectname:'',
+      projectname:'Project',
       projectid:0
     }
   }
@@ -95,16 +98,21 @@ export default class TasksList extends Component {
       .catch((error) => {
         console.log(error);
       })
-    
+    //TODO:merge these into 1 axios request if the second request is correct subject to testing.
     if (this.state.logged_in){                                 // If logged in, store user_id in this.state
       axios.get('http://localhost:5000/users/get_id_by_username/' + this.state.username)
 	.then(res => set_state({
 	  user_id: res.data
 	}))
 	.catch(console.error);
+    axios.get('http://localhost:5000/users/get_by_username/' + this.state.username)
+	.then(res => set_state({
+	  is_admin: res.data.is_admin
+	}))
+	.catch(console.error);
     axios.get('http://localhost:5000/projects/'+this.state.projectid)
 	.then(res => set_state({
-	  projectname: res.data
+	  projectname: res.data.title
 	}))
 	.catch(console.error);
     }
@@ -217,7 +225,8 @@ export default class TasksList extends Component {
 
   changeProjectnameHandler = (event) => {
     this.setState({
-      projectname: event.target.value
+      projectname: event.target.value           
+
   })
   const newtitle = {
     title: this.state.projectname
@@ -230,26 +239,32 @@ export default class TasksList extends Component {
 }
 
   render() {
+    
     return (
       <div>
-      <div >  
+      <div > 
+	 <h3 >{(this.state.logged_in).toString()}{(this.state.is_admin).toString()}</h3>
+
       <div style = {{float:'left'}}>
-      <h3>  <Editable
-      text={this.state.projectname}
+      <h3>  <Editabletitle
+      text={this.state.projectname+" "}
       placeholder="Project "
       type="input"
-      loggedin = "false"
+      loggedin = {(this.state.logged_in).toString()}
+      isadmin = {(this.state.is_admin).toString()}
       >
       
       <input
         type="text"
         name="task"
-        placeholder="Project "
-        loggedin = "true"
+        placeholder={this.state.projectname+" "}
+        loggedin = {(this.state.logged_in).toString()}
+        isadmin = {(this.state.is_admin).toString()}
         value={this.state.projectname}
+        onChange={(event) => this.setState({projectname: event.target.value })}
         onBlur={this.changeProjectnameHandler}
       />
-    </Editable></h3>
+    </Editabletitle></h3>
     </div>
     <div style = {{float:'left'}}>
       <span className="glyphicon">&#x270f;</span>
