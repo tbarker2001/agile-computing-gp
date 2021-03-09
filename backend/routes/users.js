@@ -99,7 +99,9 @@ router.route('/signup').post((req, routeres) => {
         assigned_tasks: assigned_tasks,
         links: links,
         free_text: free_text,
-        nlp_labels: nlp_labels
+        nlp_labels: nlp_labels,
+        is_admin: false,
+        is_alive: true
       });
     
       console.log("About to save user to dbs");
@@ -130,6 +132,46 @@ router.route('/update/:id').post((req, res) => {
     .catch(err => res.status(400).json('Error: ' + err));
 });
 
+router.route('/deactivate/:id').post((req, res) => {
+  User.findOne({"username": req.params.username})
+    .then(user => {
+      user.is_alive = false;
+
+      user.save()
+        .then(() => res.json('User updated'))
+        .catch(err => res.status(400).json('Error: ' + err));
+    })
+    .catch(err => res.status(400).json('Error: ' + err));
+
+  
+});
+
+
+router.route('/activate/:id').post((req, res) => {
+  User.findOne({"username": req.params.username})
+    .then(user => {
+      user.is_alive = true;
+
+      user.save()
+        .then(() => res.json('User updated'))
+        .catch(err => res.status(400).json('Error: ' + err));
+    })
+    .catch(err => res.status(400).json('Error: ' + err));
+});
+
+
+router.route('/delete/:id').post((req, res) => {
+  User.findOne({"username": req.params.username})
+    .then(user => {
+
+      user.delete()
+        .then(() => res.json('User deleted'))
+        .catch(err => res.status(400).json('Error: ' + err));
+    })
+    .catch(err => res.status(400).json('Error: ' + err));
+});
+
+
 router.route('/login').post((req, routeres) => {
   const username = req.body.username;
   const password = req.body.password;
@@ -141,6 +183,10 @@ router.route('/login').post((req, routeres) => {
     if (!user){
       console.log("User not found")
       return routeres.status(400).json("Error: User does not exist");
+    }
+    if (!user.is_alive){
+      console.log("User's account has been deactivated")
+      return routeres.status(400).json("You cannot log in, as your account has been deactivated. Contact us or your manager for more info.")
     }
   
     bcrypt.compare(password, user.password, function(err, res) {

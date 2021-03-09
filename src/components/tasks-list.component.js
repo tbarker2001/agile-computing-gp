@@ -146,7 +146,7 @@ export default class TasksList extends Component {
   getOpenTaskList() {                           //   want to return a list of OpenTask objects                            
     this.setState({
       open_tasks: this.state.all_tasks
-		    .filter(id => id.props.task.state.text === "OPEN")
+		    .filter(id => id.props.task.state.text === "OPEN" )
 		      .map(id => <OpenTask task={id.props.task} score={this.state.scores[id.props.task._id]}
 					   deleteTask={this.deleteTask} key={id.props.task._id}/>)
     });

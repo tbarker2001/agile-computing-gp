@@ -48,7 +48,8 @@ export default class ProfileView extends Component {
       free_text: '',
       assigned_tasks: [],
       labels: [],
-      is_admin: false
+      is_admin: false,
+      is_alive: true
     }
   }
 
@@ -64,7 +65,8 @@ export default class ProfileView extends Component {
           githubProfileLink: response.data.links[1].url,
           labels: response.data.nlp_labels,
           assigned_tasks: response.data.assigned_tasks,
-          is_admin: response.data.is_admin
+          is_admin: response.data.is_admin,
+          is_alive: response.data.is_alive
         })   
       })
       .catch(function (error) {
@@ -166,7 +168,10 @@ export default class ProfileView extends Component {
   }
 
   deleteUser(){
-    
+    axios.post('http://localhost:5000/users/delete/' + this.state.username, user)
+      .then(res => console.log(res.data));
+
+    window.location = '/';
   }
 
   findLabels() {
@@ -278,6 +283,19 @@ export default class ProfileView extends Component {
                 </div>
                 <div className="form-group">
                   <input type="submit" value="Update your information" className="btn btn-primary" />
+                </div>
+                <div className="form-group">
+                  {
+                    this.state.is_alive ? React.Children.toArray ([
+                      <button type="button" id="red" onClick={ () => {
+                        axios.post('http://localhost:5000/users/deactivate/' + this.state.username)
+                      }}>Deactivate account</button>
+                    ]) : React.Children.toArray([
+                      <button type="button" id="red" onClick={ () => {
+                        axios.post('http://localhost:5000/users/activate/' + this.state.username)
+                      }}>Activate account</button>
+                    ])
+                  }
                 </div>
                 <div className="form-group">
                   <button type="button" id="red" onClick={ this.deleteUser.bind(this) }>Delete user</button>
