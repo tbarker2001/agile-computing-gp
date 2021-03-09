@@ -106,12 +106,12 @@ export default class CreateUser extends Component {
             assigned_tasks: [],
             links: this.state.links,
             free_text: this.state.free_text,
-            nlp_labels: []
+            nlp_labels: [],
+            is_admin: this.state.username === "admin"
         }
 
         console.log(user);
 
-        // todo: find out why this request isn't setting cookie???
         axios.post('http://localhost:5000/users/signup', user, {withCredentials: true, credentials: 'include'})
             .then(function (response) {
                 console.log(response.data);
