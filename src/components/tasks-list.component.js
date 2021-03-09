@@ -244,8 +244,6 @@ export default class TasksList extends Component {
     return (
       <div>
       <div > 
-	 <h3 >{(this.state.logged_in).toString()}{(this.state.is_admin).toString()}</h3>
-
       <div style = {{float:'left'}}>
       <h3>  <Editabletitle
       text={this.state.projectname+" "}
@@ -271,6 +269,8 @@ export default class TasksList extends Component {
       <span className="glyphicon">&#x270f;</span>
     </div>
     <div style = {{float:'left'}}>
+    <h3>Tasks -{this.state.logged_in ? this.state.username : "(logged out)"} </h3>
+
       </div>
       </div>
         <article style = {{clear:'both'}}>
