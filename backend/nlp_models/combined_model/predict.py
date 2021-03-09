@@ -7,6 +7,33 @@ import numpy as np
 import os
 import sys
 
+import en_core_web_sm  # download via python -m spacy download en_core_web_sm
+import nltk
+import xx_ent_wiki_sm  # download via python -m spacy download xx_ent_wiki_sm
+
+nlpmultilang = xx_ent_wiki_sm.load()
+nlpeng = en_core_web_sm.load()
+nltk.download('punkt', quiet=True)
+nltk.download('averaged_perceptron_tagger', quiet=True)
+
+
+def anonymise_text(text):
+    tokenedtextml = nlpmultilang(text)
+    tokenedtexteng = nlpeng(text)
+    entstoremoveml = [ent for ent in tokenedtextml.ents if ent.label_ == 'PER']
+    entstoremoveeng = [ent for ent in tokenedtexteng.ents if ent.label_ == 'PERSON' or ent.label_ == 'NORP']
+    for ent in entstoremoveml:
+        text = text.replace(ent.text, "")
+    for ent in entstoremoveeng:
+        text = text.replace(ent.text, "")
+
+    tokens = nltk.word_tokenize(text)
+    tagged = nltk.pos_tag(tokens)
+    text = ' '.join([word for word, tag in tagged if tag != 'PRP' and tag != 'PRP$'])
+
+    return text
+
+
 modelDir = os.path.dirname(os.path.abspath(__file__))
 supervisedModelFile = os.path.join(modelDir, '../fastText_demo_model/model.fasttextmodel')
 embeddingsFile = os.path.join(modelDir, 'unsupervised_alldata.bin')
@@ -34,6 +61,7 @@ if __name__ == "__main__":
     min_probability = input_json['min_probability'] if 'min_probability' in input_json else 0.0
 
     text = re.sub("\\r\\n|\\n", " ", text)
+    text = anonymise_text(text)
 
     # Load supervised model from file
     model = fasttext.load_model(supervisedModelFile)
@@ -79,7 +107,8 @@ if __name__ == "__main__":
                 sup_i += 1
                 continue
             label_set.add(supervised_labels[sup_i][labelPrefixLength:].capitalize())
-            merged_labels_with_probs.append((supervised_labels[sup_i][labelPrefixLength:].capitalize(), supervised_label_probs[sup_i]))
+            merged_labels_with_probs.append(
+                (supervised_labels[sup_i][labelPrefixLength:].capitalize(), supervised_label_probs[sup_i]))
             sup_i += 1
             remaining -= 1
 
@@ -101,5 +130,3 @@ if __name__ == "__main__":
     }
     sys.stdout.write(json.dumps(output))
     sys.stdout.flush()
-
-
