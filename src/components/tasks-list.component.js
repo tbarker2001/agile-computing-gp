@@ -96,6 +96,11 @@ export default class TasksList extends Component {
 	  user_id: res.data
 	}))
 	.catch(console.error);
+  axios.get('http://localhost:5000/users/get_user' + this.state.username)
+	.then(res => set_state({
+	  user_id: res.data
+	}))
+	.catch(console.error);
     axios.get('http://localhost:5000/projects/'+this.state.projectid)
 	.then(res => set_state({
 	  projectname: res.data
@@ -224,13 +229,16 @@ export default class TasksList extends Component {
   }
   changeProjectnameHandler = (event) => {
     this.setState({
-      projectname: event.target.value               // scores - is a mapping of task_id to score when matched with current user.
+      projectname: event.target.value           
   })
-    axios.post('http://localhost:5000/project/update'+this.state.projectid, userInfo)
-    .then(response => {
-      const modelOutput = response.data.model_output;
-      labelledUsers[this.state.user_id] = modelOutput;
-    })
+  const newtitle = {
+    title: this.state.projectname
+  }
+  console.log(newtitle);
+
+    axios.post('http://localhost:5000/projects/update'+this.state.projectid,newtitle)
+    .then(res => console.log(res.data));
+    
 }
 
   render() {
