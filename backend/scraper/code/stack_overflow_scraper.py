@@ -93,11 +93,16 @@ class StackOverflowPost:
     def get_answers(self):
         return self._answers
 
-    def get_free_text(self):
-        # todo consider tokenising title and added that as tags
-        labels_prefix = "__label__ " + " __label__ ".join(self._post_tags)
-        free_text = "{labels} {title} {post} {answers}".format(labels=labels_prefix, title=self._title, post=self._post,
-                                                               answers=" ".join(self._answers))
+    def get_free_text(self, training=False):
+        if training:
+            labels_prefix = "__label__ " + " __label__ ".join(self._post_tags)
+            free_text = "{labels} {title} {post} {answers}".format(labels=labels_prefix, title=self._title,
+                                                                   post=self._post,
+                                                                   answers=" ".join(self._answers))
+        else:
+            free_text = "{title} {post} {answers}".format(title=self._title,
+                                                          post=self._post,
+                                                          answers=" ".join(self._answers))
         free_text = anonymise_text(free_text)
         return free_text
 
@@ -169,7 +174,7 @@ def write_posts_to_file(n, filepath):
         for _ in range(n):
             post = generator_pop(posts)
             if post is not None:
-                line = post.get_free_text() + "\n"
+                line = post.get_free_text(training=True) + "\n"
                 fout.write(line)
 
 
