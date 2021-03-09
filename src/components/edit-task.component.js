@@ -1,6 +1,5 @@
 import React, {Component} from 'react';
 import axios from 'axios';
-import {Link} from 'react-router-dom';
 import DatePicker from 'react-datepicker';
 import "react-datepicker/dist/react-datepicker.css";
 import "../App.css";
@@ -87,6 +86,52 @@ const RecommendedUserList = props => {
             </LoadingOverlay>
         </article>
     );
+}
+/// @param props {
+///   can_edit: <boolean>
+///   },
+///   onToggleAssignment: <username> => {...},
+///   isLoading: <boolean> for spinner state
+/// }
+const getLabels = props => {
+    const isCreatorOrAdmin = props.can_edit;
+
+    if (can_edit) {
+        return (
+            <tbody>
+            {this.getTopLabels()}
+            <tr>
+                <td>
+                    <input
+                        type="text"
+                        placeholder="Add new label"
+                        value={this.state.add_label_field}
+                        onChange={this.onChangeAddLabelField}
+                    />
+                </td>
+                <td></td>
+                <td>
+                    <a href="#" onClick={this.onManualAddLabel.bind(this)}>+</a>
+                </td>
+            </tr>
+            {
+                this.state.manual_deleted_labels.length > 0
+                    ? <tr>Manually removed: {this.state.manual_deleted_labels.join()}</tr>
+                    : null
+            }
+            </tbody>);
+
+    } else {
+        return (
+            <tbody>
+            {this.getTopLabels()}
+            {
+                this.state.manual_deleted_labels.length > 0
+                    ? <tr>Manually removed: {this.state.manual_deleted_labels.join()}</tr>
+                    : null
+            }
+            </tbody>);
+    }
 }
 
 export default class EditTask extends Component {
@@ -327,6 +372,13 @@ export default class EditTask extends Component {
         return this.state.users;      // TODO: same as labelList above, but for putting recommended users into its table from this.state.users
     }
 
+    isAdminOrCreator() {
+        var username = Cookies.get("username");
+        const current_user = axios.get('http://localhost:5000/users/get_by_username/' + username);
+        const is_admin = current_user.is_admin;
+        return is_admin || this.state.creator_username === username;
+    }
+
     onSubmit(e) {
         e.preventDefault();
 
@@ -372,6 +424,10 @@ export default class EditTask extends Component {
     }
 
     render() {
+
+        const admin_or_creator = this.isAdminOrCreator();
+
+
         return (
             <div>
                 <h3>Edit Task</h3>
@@ -461,28 +517,9 @@ export default class EditTask extends Component {
                                             <th></th>
                                         </tr>
                                         </thead>
-                                        <tbody>
-                                        {this.getTopLabels()}
-                                        <tr>
-                                            <td>
-                                                <input
-                                                    type="text"
-                                                    placeholder="Add new label"
-                                                    value={this.state.add_label_field}
-                                                    onChange={this.onChangeAddLabelField}
-                                                />
-                                            </td>
-                                            <td></td>
-                                            <td>
-                                                <a href="#" onClick={this.onManualAddLabel.bind(this)}>+</a>
-                                            </td>
-                                        </tr>
-                                        {
-                                            this.state.manual_deleted_labels.length > 0
-                                                ? <tr>Manually removed: {this.state.manual_deleted_labels.join()}</tr>
-                                                : null
-                                        }
-                                        </tbody>
+                                        <getLabels
+                                            isAdminOrCreator={admin_or_creator}
+                                        />
                                     </table>
                                 </LoadingOverlay>
                             </article>
