@@ -5,6 +5,7 @@ import axios from 'axios';
 
 import Editabletitle from "./editable-title.component";
 
+
 const Project = props =>(
   <div> 
       <p onClick={ props.TasksList.state.projectname }>{props.TasksList.state.projectname} !</p>
@@ -21,7 +22,7 @@ const Task = props => (
     <td>{props.task.state.text}</td>
     <td>{props.task.date.substring(0,10)}</td>
     <td>
-      <Link to={"#"}>view (1)</Link> 
+      {props.task.assigned_users.length} 
     </td>
     <td>
       <Link to={"/view/"+props.task._id}>view</Link> | <Link to={"/edit/"+props.task._id}>edit</Link> | <a href="#" onClick={() => { props.deleteTask(props.task._id) }}>delete</a>
@@ -36,7 +37,7 @@ const OpenTask = props => (                 //    OpenTask is the same, but with
     <td>{props.task.description}</td>
     <td>{props.task.date.substring(0,10)}</td>
     <td>
-      <Link to={"#"}>view (1)</Link> 
+    {props.task.assigned_users.length} 
     </td>
     <td>{props.task.score}</td>
     <td>
@@ -133,8 +134,8 @@ export default class TasksList extends Component {
     const username = this.state.username;
     this.setState({
       assigned_tasks: this.state.all_tasks.filter(el =>
-	el.props.task.state.text !== "CLOSED" &&
-	el.props.task.assigned_users
+	      el.props.task.state.text !== "CLOSED" &&            // are there not meant to be brackets around this?
+	      el.props.task.assigned_users
 	  .filter(user => {
 	    if (user === null) {
 	      console.error("Null assigned user in task:", el.props.task);
@@ -152,7 +153,7 @@ export default class TasksList extends Component {
   getOpenTaskList() {                           //   want to return a list of OpenTask objects                            
     this.setState({
       open_tasks: this.state.all_tasks
-		    .filter(id => id.props.task.state.text === "OPEN")
+		    .filter(id => id.props.task.state.text === "OPEN" )
 		      .map(id => <OpenTask task={id.props.task} score={this.state.scores[id.props.task._id]}
 					   deleteTask={this.deleteTask} key={id.props.task._id}/>)
     });
@@ -214,32 +215,36 @@ export default class TasksList extends Component {
     return labelledTasks;
   }
 
-
       
   labelled_user() {
     let labelledUsers = {};                                 // will be a list of size one
-    let userInfo = {
-      text: 'an'                                            // hoping for a free text field in the user schema to fill this
-    };                                                      // other solutions include finding a way to convert a Label list to something of the same form as model output
-    axios.post('http://localhost:5000/nlptest/processProfile', userInfo)
-      .then(response => {
-        const modelOutput = response.data.model_output;
-        labelledUsers[this.state.user_id] = modelOutput;
+    axios.get('http://localhost:5000/users/get_by_username/' + this.state.username)
+      .then(user => {
+        let userInfo = {
+          username: this.state.username,
+          links: user.links,
+          freeText: user.free_text
+        }
+        axios.post('http://localhost:5000/nlptest/processProfile', userInfo)
+          .then(response => {
+            const modelOutput = response.data.model_output;
+            labelledUsers[this.state.user_id] = modelOutput;
+          })
       })
-    
     return labelledUsers;
   }
+
+
   changeProjectnameHandler = (event) => {
     this.setState({
       projectname: event.target.value           
   })
   const newtitle = {
-
     title: this.state.projectname
   }
   console.log(newtitle);
 
-    axios.post('http://localhost:5000/projects/update'+this.state.projectid,newtitle)
+  axios.post('http://localhost:5000/projects/update'+this.state.projectid,newtitle)
     .then(res => console.log(res.data));
     
 }
