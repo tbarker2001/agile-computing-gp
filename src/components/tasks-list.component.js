@@ -252,7 +252,9 @@ export default class TasksList extends Component {
     
     return (
       <div>
-      <div >  
+      <div > 
+	 <h3 >{(this.state.logged_in).toString()}{(this.state.is_admin).toString()}</h3>
+
       <div style = {{float:'left'}}>
       <h3>  <Editabletitle
       text={this.state.projectname+" "}
