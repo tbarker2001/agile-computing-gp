@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import { Link } from 'react-router-dom';
+import ClockLoader from 'react-spinners/ClockLoader';
 import Cookies from 'js-cookie';
 import axios from 'axios';
 
@@ -38,8 +39,8 @@ const OpenTask = props => (                 //    OpenTask is the same, but with
     <td>{props.task.creator_user.username}</td>
     <td>{props.task.title}</td>
     <td>{props.task.description}</td>
-    <td>{props.score}</td>
-    <td>{props.task.deadline.substring(0,10)}</td>
+    <td>{props.score == undefined ? <ClockLoader /> : props.score.score.toFixed(4)}</td>
+    <td>{props.task.deadline == undefined ? null : props.task.deadline.substring(0,10)}</td>
     <td>{props.task.assigned_users.length}</td>
     <td>
       <Link to={"/view/"+props.task._id}>view</Link> | <a href="#" onClick={() => { props.assignSelfTask(props.task) }}>self-assign</a>
@@ -93,10 +94,10 @@ export default class TasksList extends Component {
       .then(this.getOtherOpenTaskList.bind(this))
       .then(this.getClosedTaskList.bind(this))
       .then(this.getCreatedTaskList.bind(this))
-      .then(
-        console.log("Set tasks to " + JSON.stringify(this.state.all_tasks)))
+      .then(this.loadTaskScores.bind(this))
+      .then(this.getOtherOpenTaskList.bind(this))
       .catch((error) => {
-        console.log(error);
+        console.error(error);
       })
     //TODO:merge these into 1 axios request if the second request is correct subject to testing.
     if (this.state.logged_in){                                 // If logged in, store user_id in this.state
@@ -152,7 +153,7 @@ export default class TasksList extends Component {
       labelled_tasks: this.labelled_open_tasks()                   //   run topTasksForUser to run calculateMatchScores on this user, and all tasks
     };                                                         
   
-    axios.post('http://localhost:5000/nlptest/topTasksForUser', request)
+    return axios.post('http://localhost:5000/nlptest/topTasksForUser', request)
     .then(response => {
       this.setState({
           scores: response.data               // scores - is a mapping of task_id to score when matched with current user.
@@ -219,7 +220,7 @@ export default class TasksList extends Component {
   // Returns {task_id: [{"label": (String), "probability": (Real)}]}
   labelled_open_tasks() {
     let labelled_open_tasks = {};
-    this.state.open_tasks.forEach(id => labelled_open_tasks[id.props.task.__id] = id.props.task.nlp_labels);
+    this.state.open_tasks.forEach(id => labelled_open_tasks[id.props.task._id] = id.props.task.nlp_labels);
     return labelled_open_tasks;
   }
 
