@@ -3,6 +3,8 @@ import axios from 'axios';
 import { Link } from 'react-router-dom';
 import DatePicker from 'react-datepicker';
 import "react-datepicker/dist/react-datepicker.css";
+import LoadingOverlay from 'react-loading-overlay';
+import ClockLoader from 'react-spinners/ClockLoader';
 import "../App.css";
 
 
@@ -10,22 +12,24 @@ const Label = props => (
   <tr>
     <td>{props.label.string}</td>
     <td>{props.label.score}</td>
-    <td>
-      <a href="#" onClick={() => { 
-        props.deleteLabel(props.label._id) 
-      }}>X</a>       
-    </td>
   </tr>
 )
 
 const Task = props => (
-    <tr>
-      <td>{props.task.title}</td>
-      <td>
-        <Link to={"/view/"+props.task._id}>View</Link>
-      </td>
-    </tr>
-  )
+  <tr>
+    <td>{props.task.title}</td>
+    <td>
+      <Link to={"/view/"+props.task._id}>View</Link>
+    </td>
+  </tr>
+)
+
+// CSS override for spinners
+const spinnerCss = `
+display: block;
+margin: 0 auto;
+border-color: red;
+`;
   
 
 export default class ProfileView extends Component {
@@ -47,7 +51,9 @@ export default class ProfileView extends Component {
       githubProfileLink: '',
       free_text: '',
       assigned_tasks: [],
+      model_output: {},
       labels: [],
+      top_labels: [],
       is_admin: false,
       is_alive: true
     }
@@ -66,6 +72,7 @@ export default class ProfileView extends Component {
           labels: response.data.nlp_labels,
           assigned_tasks: response.data.assigned_tasks,
           is_admin: response.data.is_admin,
+          labels_is_loading: false,
           is_alive: response.data.is_alive
         })   
       })
@@ -151,19 +158,25 @@ export default class ProfileView extends Component {
   }
 
   labelList() {
-    return React.Children.toArray(this.state.labels.sort(this.labelSort).slice(0,5).map(currentLabel => {
+    return React.Children.toArray(this.state.labels.sort(this.labelSort).slice(0,5).map(currentLabel => 
       <Label 
         label={currentLabel.label}
         probability={currentLabel.probability}
-        />}));
-    
-
-
+        />
+      ));
 
  //   return this.state.labels.sort(this.labelSort).slice(0,5).map(currentlabel => {
  //     return <Label label={currentlabel} deleteLabel={this.deleteLabel} key={currentlabel._id}/>;
   //      return <Label label={currentlabel} key={currentlabel._id}/>; // got rid of the delete
     
+  }
+
+  getTopLabels() {
+    return React.Children.toArray(this.state.top_labels.map(x =>
+      <Label
+        label={x.label}
+        probability={x.probability}
+      />));
   }
 
   labelSort(a, b) {
@@ -187,28 +200,35 @@ export default class ProfileView extends Component {
   }
 
   findLabels() {
+    this.setState({
+      labels_is_loading: true
+    });
     let userInfo = {
         text: this.state.free_text,
         link1: this.state.link1,
         link2: this.state.link2
     };
     axios.post('http://localhost:5000/nlptest/processProfile', userInfo)
-      .then(response => {
-        const modelOutput = response.data.modelOutput;
-        const labels = modelOutput.map(x => <Label label={{
-            string: x.label,
-            score: x.probability
-        }}/>);
+      .then(response => this.setState({
+        model_output: response.data.model_output,
+        top_labels: [
+          ...response.data.top_labels
+        ],
+        labels_is_loading: false
+      }))
+      .catch(err => {
+        console.error(err);
         this.setState({
-            labels: labels
-        })
+          labels_is_loading: false
+        });
+        alert('Error retrieving labels');
       })
   }
 
   currentAssignedTasks(){
-    return this.state.assigned_tasks.map(currenttask => {
-        return <Task task={currenttask} viewTask={this.viewTask} key={currenttask._id} />
-    });
+    return this.state.assigned_tasks.map(currenttask => 
+        <Task task={currenttask} key={currenttask._id} />
+    );
   }
 
   onSubmit(e) {
@@ -322,28 +342,35 @@ export default class ProfileView extends Component {
               </div> 
               <div className="form-group">
                 <label>Biggest tags we identified from your links and free text: </label>
-                <table className="table">
+                <LoadingOverlay
+                  active={this.state.labels_is_loading}
+                  spinner={<ClockLoader css={spinnerCss} />}
+                  text='Waiting for labels...'
+                  >
+                  <table className="table">
                     <thead className="thead-light">
-                        <tr>
-                          <th>String</th>
-                          <th>Score</th>
-                        </tr>
+                      <tr>
+                        <th>String</th>
+                        <th>Score</th>
+                        <th></th>
+                      </tr>
                     </thead>
                     <tbody>
-                        { this.labelList() }
+                      { this.getTopLabels() }
                     </tbody>
-              </table>
-            </div>
-            <div className="form-group">
-              <br></br>
-              <label>Currently assigned tasks: </label>
-                <table className="table">
-                    <tbody>
-                        
-                        { this.currentAssignedTasks() }
-                    </tbody>
-              </table>
-            </div>
+                  </table>
+                </LoadingOverlay>
+              </div>
+              <div className="form-group">
+                <br></br>
+                <label>Currently assigned tasks: </label>
+                  <table className="table">
+                      <tbody>
+                          
+                          { this.currentAssignedTasks() }
+                      </tbody>
+                </table>
+              </div>
             </article>
           </div>
       </div>
