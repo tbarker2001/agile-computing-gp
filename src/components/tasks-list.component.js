@@ -4,7 +4,7 @@ import Cookies from 'js-cookie';
 import axios from 'axios';
 
 const Task = props => (
-  <tr>
+  <tr style={{"backgroundColor": props.task.state.colour}}>
     <td>{props.task.creator_user.username}</td>
     <td>{props.task.title}</td>
     <td>{props.task.description}</td>
@@ -18,17 +18,17 @@ const Task = props => (
     </td>
   </tr>
 )
-                                            //     {if (props.task.score > 0.24){style={background-colour: #4DED30}}
+                                            //    {if (0.5 > 0.24){style={background-colour: #4DED30}}}
 const OpenTask = props => (                 //    OpenTask is the same, but with the recommendation score
-  <tr>                                      
+  <tr style={{"backgroundColor": props.task.state.colour}}>                                      
     <td>{props.task.creator_user.username}</td>
     <td>{props.task.title}</td>
     <td>{props.task.description}</td>
     <td>{props.task.date.substring(0,10)}</td>
+    <td>{props.score}</td>
     <td>
       <Link to={"#"}>view (1)</Link> 
     </td>
-    <td>{props.score}</td>
     <td>
       <Link to={"/view/"+props.task._id}>view</Link> | <Link to={"/edit/"+props.task._id}>edit</Link> | <a href="#" onClick={() => { props.deleteTask(props.task._id) }}>delete</a>
     </td>
@@ -49,6 +49,7 @@ export default class TasksList extends Component {
       assigned_tasks: [],
       open_tasks: [],
       closed_tasks: [],
+      created_tasks: [],
       username: username,
       user_id: '',
       logged_in: logged_in,
@@ -66,14 +67,18 @@ export default class TasksList extends Component {
 
     axios.get('http://localhost:5000/tasks/')
       .then(response => {
+        response.data.forEach(task =>
+          task.state = task.state ?? {"text": "OPEN", "colour": "#FFFFFF"}
+          );
         set_state({
 	        all_tasks: response.data.map(task =>
 	          <Task task={task} deleteTask={this.deleteTask} key={task._id}/>)
 	      });
       })
       .then(this.getAssignedTaskList.bind(this))
-      .then(this.getOpenTaskList.bind(this))
+      .then(this.getOtherOpenTaskList.bind(this))
       .then(this.getClosedTaskList.bind(this))
+      .then(this.getCreatedTaskList.bind(this))
       .then(
         console.log("Set tasks to " + JSON.stringify(this.state.all_tasks)))
       .catch((error) => {
@@ -105,24 +110,16 @@ export default class TasksList extends Component {
 
   }
 
-
+  isUserAssigned(task) {
+    return task.assigned_users.some(user => user.username === this.state.username);
+  }
 
   getAssignedTaskList() {
-    const username = this.state.username;
     this.setState({
       assigned_tasks: this.state.all_tasks.filter(el =>
-	el.props.task.state.text !== "CLOSED" &&
-	el.props.task.assigned_users
-	  .filter(user => {
-	    if (user === null) {
-	      console.error("Null assigned user in task:", el.props.task);
-	      return false;
-	    }
-	    return true;
-	  })
-	  .map(user => user.username)
-	  .includes(username))
-    })
+	      el.props.task.state.text !== "CLOSED"
+        && this.isUserAssigned(el.props.task))
+    });
   }
 
   // NOT YET TESTED (may be working though)
@@ -140,13 +137,19 @@ export default class TasksList extends Component {
     });
   }
 
-  getOpenTaskList() {     
+
+
+  getOtherOpenTaskList() {     
     this.loadTaskScores();                      //   want to return a list of OpenTask objects                            
     this.setState({
       open_tasks: this.state.all_tasks
-		    .filter(id => id.props.task.state.text === "OPEN")
-		      .map(id => <OpenTask task={id.props.task} score={this.state.scores[id.props.task._id]}
-					   deleteTask={this.deleteTask} key={id.props.task._id}/>)
+		    .filter(id =>
+          ! (id.props.task.state.text === "CLOSED")
+          && ! (id.props.task.creator_user.username === this.state.username)
+          && ! this.isUserAssigned(id.props.task))
+		    .map(id => 
+          <OpenTask task={id.props.task} score={this.state.scores[id.props.task._id]}
+					deleteTask={this.deleteTask} key={id.props.task._id}/>)
     });
     return;
     // TODO: work out how to sort
@@ -160,6 +163,12 @@ export default class TasksList extends Component {
     return;
   }
 
+  getCreatedTaskList() {                                              
+    this.setState({
+      created_tasks: this.state.all_tasks.filter(id => id.props.task.creator_user.username === this.state.username)
+    });
+    return;
+  }
   
   // The labels and propabilities of each task, ready for use with NLP api
   // Returns {task_id: [{"label": (String), "probability": (Real)}]}
@@ -198,7 +207,27 @@ export default class TasksList extends Component {
                 <br></br>
 
                 <br></br>
-                <h3>Open tasks</h3>
+                <h3>Created tasks</h3>
+                <table className="table">       
+                  <thead className="thead-light">
+                    <tr>
+                      <th>Creator</th>
+                      <th>Title</th>
+                      <th>Description</th>
+                      <th>State</th>
+                      <th>Date</th>
+                      <th>Assignees</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    { this.state.created_tasks }
+                  </tbody>
+                </table>
+                <br></br>
+
+                <br></br>
+                <h3>Other open tasks</h3>
                 <table className="table">       
                   <thead className="thead-light">
                     <tr>
@@ -206,8 +235,8 @@ export default class TasksList extends Component {
                       <th>Title</th>
                       <th>Description</th>
                       <th>Date</th>
-                      <th>Recommendation</th>
                       <th>Score</th>
+                      <th>Assignees</th>
                       <th>Actions</th>
                     </tr>
                   </thead>
@@ -236,6 +265,8 @@ export default class TasksList extends Component {
                   </tbody>
                 </table>
                 <br></br>
+
+
             </div>
 
         : <div> <br></br> <h5>Please log in above to view your tasks.</h5> </div>}
