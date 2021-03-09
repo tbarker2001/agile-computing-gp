@@ -168,7 +168,10 @@ export default class ProfileView extends Component {
   }
 
   deleteUser(){
-    axios.post('http://localhost:5000/users/delete/' + this.state.username, user)
+    let userInfo = {
+      username: this.state.username
+    }
+    axios.post('http://localhost:5000/users/delete', userInfo)
       .then(res => console.log(res.data));
 
     window.location = '/';
@@ -288,11 +291,11 @@ export default class ProfileView extends Component {
                   {
                     this.state.is_alive ? React.Children.toArray ([
                       <button type="button" id="red" onClick={ () => {
-                        axios.post('http://localhost:5000/users/deactivate/' + this.state.username)
+                        axios.post('http://localhost:5000/users/deactivate', this.state.username)
                       }}>Deactivate account</button>
                     ]) : React.Children.toArray([
                       <button type="button" id="red" onClick={ () => {
-                        axios.post('http://localhost:5000/users/activate/' + this.state.username)
+                        axios.post('http://localhost:5000/users/activate', this.state.username)
                       }}>Activate account</button>
                     ])
                   }

@@ -132,13 +132,13 @@ router.route('/update/:id').post((req, res) => {
     .catch(err => res.status(400).json('Error: ' + err));
 });
 
-router.route('/deactivate/:id').post((req, res) => {
+router.route('/deactivate/').post((req, res) => {
   User.findOne({"username": req.params.username})
     .then(user => {
       user.is_alive = false;
 
       user.save()
-        .then(() => res.json('User updated'))
+        .then(() => res.json('User deactivated'))
         .catch(err => res.status(400).json('Error: ' + err));
     })
     .catch(err => res.status(400).json('Error: ' + err));
@@ -147,26 +147,29 @@ router.route('/deactivate/:id').post((req, res) => {
 });
 
 
-router.route('/activate/:id').post((req, res) => {
+router.route('/activate/').post((req, res) => {
   User.findOne({"username": req.params.username})
     .then(user => {
       user.is_alive = true;
 
       user.save()
-        .then(() => res.json('User updated'))
+        .then(() => res.json('User reactivated'))
         .catch(err => res.status(400).json('Error: ' + err));
     })
     .catch(err => res.status(400).json('Error: ' + err));
 });
 
 
-router.route('/delete/:id').post((req, res) => {
+router.route('/delete/').post((req, res) => {
   User.findOne({"username": req.params.username})
     .then(user => {
 
       user.delete()
         .then(() => res.json('User deleted'))
         .catch(err => res.status(400).json('Error: ' + err));
+
+      Cookies.remove("username");
+      window.location = '/';
     })
     .catch(err => res.status(400).json('Error: ' + err));
 });
