@@ -337,16 +337,6 @@ export default class ProfileView extends Component {
                   </table>
                 </LoadingOverlay>
               </div>
-              <div className="form-group">
-                <br></br>
-                <label>Currently assigned tasks: </label>
-                  <table className="table">
-                      <tbody>
-                          
-                          { this.currentAssignedTasks() }
-                      </tbody>
-                </table>
-              </div>
             </article>
           </div>
       </div>
