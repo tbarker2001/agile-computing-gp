@@ -13,9 +13,11 @@ class UserProfile:
 
         self._username = user_details.setdefault("username", "")
         self._links = user_details["links"] if "links" in user_details else {}
+        self._user_free_text = user_details["freeText"] if "freeText" in user_details else {}
 
         self._stack_profile = None
         self._github_profile = None
+        
 
         if len(self._links) > 0:
             for link in self._links:
@@ -44,6 +46,8 @@ class UserProfile:
             freetext += self._stack_profile.get_free_text()
         if self._github_profile is not None:
             freetext += self._github_profile.get_free_text()
+        if self._user_free_text is not None:
+            freetext += self._user_free_text
         return freetext
 
 

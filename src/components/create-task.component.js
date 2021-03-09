@@ -258,21 +258,21 @@ export default class CreateTask extends React.Component {
     };
     axios.post('http://localhost:5000/nlptest/processTask', taskInfo)
       .then(response => this.setState({
-	model_output: response.data.model_output,
-	top_labels: [
-	  ...response.data.top_labels
-	    .filter(label => !this.state.manual_deleted_labels.includes(label.label)),
-	  ...this.state.manual_added_labels.map(label => ({label: label, probability: null}))
-	],
-	labels_is_loading: false,
-	labels_is_outdated: false
+        model_output: response.data.model_output,
+        top_labels: [
+          ...response.data.top_labels
+            .filter(label => !this.state.manual_deleted_labels.includes(label.label)),
+          ...this.state.manual_added_labels.map(label => ({label: label, probability: null}))
+        ],
+        labels_is_loading: false,
+        labels_is_outdated: false
       }))
       .catch(err => {
-	console.error(err);
-	this.setState({
-	  labels_is_loading: false
-	});
-	alert(`Error retrieving labels`);
+        console.error(err);
+        this.setState({
+          labels_is_loading: false
+        });
+        alert(`Error retrieving labels`);
       })
   }
 

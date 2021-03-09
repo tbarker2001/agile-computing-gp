@@ -3,6 +3,17 @@ import { Link } from 'react-router-dom';
 import Cookies from 'js-cookie';
 import axios from 'axios';
 
+
+import Editable from "./editable-title.component";
+
+const Project = props =>(
+  <div> 
+      <p onClick={ props.TasksList.state.projectname }>{props.TasksList.state.projectname} !</p>
+      <input type="text" onChange = {props.TasksList.state.projectname} value={props.TasksList.state.projectname}/>
+  </div>
+)
+
+
 const Task = props => (
   <tr style={{"backgroundColor": props.task.state.colour}}>
     <td>{props.task.creator_user.username}</td>
@@ -54,7 +65,9 @@ export default class TasksList extends Component {
       username: username,
       user_id: '',
       logged_in: logged_in,
-      scores: {}
+      scores: {},
+      projectname:'',
+      projectid:0
     }
   }
 
@@ -89,6 +102,11 @@ export default class TasksList extends Component {
       axios.get('http://localhost:5000/users/get_id_by_username/' + this.state.username)
 	.then(res => set_state({
 	  user_id: res.data
+	}))
+	.catch(console.error);
+    axios.get('http://localhost:5000/projects/'+this.state.projectid)
+	.then(res => set_state({
+	  projectname: res.data
 	}))
 	.catch(console.error);
     }
@@ -199,12 +217,50 @@ export default class TasksList extends Component {
     return labelled_open_tasks;
   }
 
+  changeProjectnameHandler = (event) => {
+    this.setState({
+      projectname: event.target.value
+  })
+  const newtitle = {
+    title: this.state.projectname
+  }
+  console.log(newtitle);
+
+  axios.post('http://localhost:5000/projects/update'+this.state.projectid,newtitle)
+    .then(res => console.log(res.data));
+    
+}
 
   render() {
     return (
       <div>
-        <h3>Project Tasks - {this.state.logged_in ? this.state.username : "(logged out)"}</h3>
-        <article>
+      <div >  
+      <div style = {{float:'left'}}>
+      <h3>  <Editable
+      text={this.state.projectname}
+      placeholder="Project "
+      type="input"
+      loggedin = "false"
+      >
+      
+      <input
+        type="text"
+        name="task"
+        placeholder="Project "
+        loggedin = "true"
+        value={this.state.projectname}
+        onBlur={this.changeProjectnameHandler}
+      />
+    </Editable></h3>
+    </div>
+    <div style = {{float:'left'}}>
+      <span className="glyphicon">&#x270f;</span>
+    </div>
+    <div style = {{float:'left'}}>
+    <h3>Tasks -{this.state.logged_in ?  this.state.username : "(logged out)"} </h3>
+      </div>
+      </div>
+        <article style = {{clear:'both'}}>
         {this.state.logged_in ?
             <div>
                 <br></br>
@@ -289,7 +345,6 @@ export default class TasksList extends Component {
 
 
             </div>
-
         : <div> <br></br> <h5>Please log in above to view your tasks.</h5> </div>}
       </article>
       </div>
