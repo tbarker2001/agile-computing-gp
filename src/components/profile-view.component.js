@@ -151,10 +151,19 @@ export default class ProfileView extends Component {
   }
 
   labelList() {
-    return this.state.labels.sort(this.labelSort).slice(0,5).map(currentlabel => {
+    return React.Children.toArray(this.state.labels.sort(this.labelSort).slice(0,5).map(currentLabel => {
+      <Label 
+        label={currentLabel.label}
+        probability={currentLabel.probability}
+        />}));
+    
+
+
+
+ //   return this.state.labels.sort(this.labelSort).slice(0,5).map(currentlabel => {
  //     return <Label label={currentlabel} deleteLabel={this.deleteLabel} key={currentlabel._id}/>;
-        return <Label label={currentlabel} key={currentlabel._id}/>; // got rid of the delete
-    })
+  //      return <Label label={currentlabel} key={currentlabel._id}/>; // got rid of the delete
+    
   }
 
   labelSort(a, b) {

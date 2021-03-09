@@ -266,7 +266,7 @@ export default class TasksList extends Component {
     </Editable></h3>
     </div>
     <div style = {{float:'left'}}>
-    <span class="glyphicon">&#x270f;</span>
+      <span className="glyphicon">&#x270f;</span>
     </div>
     <div style = {{float:'left'}}>
     <h3>Tasks -{this.state.logged_in ?  this.state.username : "(logged out)"} </h3>
