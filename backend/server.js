@@ -40,43 +40,15 @@ State.find()
     if (states.length == 0) {
       const open = new State({
 	text: "OPEN",
-	colour: "#AADDAA"
+	colour: "#FFFFFF"
       });
       const closed = new State({
 	text: "CLOSED",
-	colour: "#DDAAAA"
+	colour: "#BDBDBD"
       });
       Promise.all([
 	open.save(),
 	closed.save()
-      ]).catch(console.error);
-    }
-  })
-  .catch(console.error);
-
-// If no tasks are saved, create tests
-Task.find()
-  .then(tasks => {
-    if (tasks.length == 0) {
-      const test1 = new Task({
-        title: "Test task",
-        description: "Test description",
-      
-        state: ObjectId("604622910a42ca3ee400063f"), //open
-      
-        creator_user: ObjectId("603f9540f5d0582828b665d3"), //dan
-        assigned_users: [ObjectId("603ae42c75ad0e13d8fe13b0")],
-      
-        date: Date("2021-03-03T13:55:12.689Z"),
-        deadline: Date("2021-06-06T13:55:12.689Z"),
-      
-        nlp_labels: [{label: "computing", probability: 1.0}],
-        manual_deleted_labels: [],
-        manual_added_labels: [],
-      });
-
-      Promise.all([
-        test1.save(),
       ]).catch(console.error);
     }
   })
