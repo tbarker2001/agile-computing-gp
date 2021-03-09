@@ -25,10 +25,12 @@ connection.once('open', () => {
 const tasksRouter = require('./routes/tasks');
 const usersRouter = require('./routes/users');
 const nlpTestRouter = require('./routes/nlptest');
+const titleRouter = require('./routes/projects');
 
 app.use('/tasks', tasksRouter);
 app.use('/users', usersRouter);
 app.use('/nlptest', nlpTestRouter);
+app.use('/projects',titleRouter);
 
 // If no states are saved, save them to database
 State.find()
