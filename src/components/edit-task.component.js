@@ -105,45 +105,6 @@ const RecommendedUserList = props => {
     );
 }
 
-const GetLabelsForTable = props => {
-
-    if (props.is_admin || props.is_creator) {
-        return (
-            <tbody>
-            {props.getTopLabels()}
-            <tr>
-                <td>
-                    <input
-                        type="text"
-                        placeholder="Add new label"
-                        value={props.add_label_field}
-                        onChange={props.onChangeAddLabelField}
-                    />
-                </td>
-                <td></td>
-                <td>
-                    <a href="#" onClick={props.onManualAddLabel}>+</a>
-                </td>
-            </tr>
-            {
-                props.manual_deleted_labels.length > 0
-                    ? <tr>Manually removed: {props.manual_deleted_labels.join()}</tr>
-                    : null
-            }
-            </tbody>);
-
-    } else {
-        return (
-            <tbody>
-            {props.getTopLabels()}
-            {
-                props.manual_deleted_labels.length > 0
-                    ? <tr>Manually removed: {props.manual_deleted_labels.join()}</tr>
-                    : null
-            }
-            </tbody>);
-    }
-}
 
 export default class EditTask extends Component {
     constructor(props) {
@@ -317,6 +278,45 @@ export default class EditTask extends Component {
                 is_admin={this.state.is_admin}
                 is_creator={this.state.username === this.state.creator_username}
             />));
+    }
+
+    GetLabelsForTable() {
+        if (this.state.is_admin || this.state.is_creator) {
+            return (
+                <tbody>
+                {this.getTopLabels()}
+                <tr>
+                    <td>
+                        <input
+                            type="text"
+                            placeholder="Add new label"
+                            value={this.state.add_label_field}
+                            onChange={this.onChangeAddLabelField}
+                        />
+                    </td>
+                    <td></td>
+                    <td>
+                        <a href="#" onClick={this.onManualAddLabel.bind(this)}>+</a>
+                    </td>
+                </tr>
+                {
+                    this.state.manual_deleted_labels.length > 0
+                        ? <tr>Manually removed: {this.state.manual_deleted_labels.join()}</tr>
+                        : null
+                }
+                </tbody>);
+
+        } else {
+            return (
+                <tbody>
+                {this.getTopLabels()}
+                {
+                    this.state.manual_deleted_labels.length > 0
+                        ? <tr>Manually removed: {this.state.manual_deleted_labels.join()}</tr>
+                        : null
+                }
+                </tbody>);
+        }
     }
 
     getAssignedUsers() {
@@ -539,14 +539,7 @@ export default class EditTask extends Component {
                                             <th></th>
                                         </tr>
                                         </thead>
-                                        <GetLabelsForTable is_admin={this.state.is_admin}
-                                                           is_creator={this.state.username === this.state.creator_username}
-                                                           manual_deleted_labels={this.state.manual_deleted_labels}
-                                                           add_label_field={this.state.add_label_field}
-                                                           onChangeAddLabelField={this.onChangeAddLabelField}
-                                                           getTopLabels={this.getTopLabels}
-                                                           onManualAddLabel={this.onManualAddLabel.bind(this)}
-                                        />
+                                        {this.GetLabelsForTable()}
                                     </table>
                                 </LoadingOverlay>
                             </article>
