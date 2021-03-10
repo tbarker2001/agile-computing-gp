@@ -3,6 +3,8 @@ const cors = require('cors');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 let State = require('./models/state.model');
+let Task = require('./models/task.model');
+var ObjectId = require('mongodb').ObjectID;
 
 require('dotenv').config();
 
@@ -38,11 +40,11 @@ State.find()
     if (states.length == 0) {
       const open = new State({
 	text: "OPEN",
-	colour: "green"
+	colour: "#FFFFFF"
       });
       const closed = new State({
 	text: "CLOSED",
-	colour: "red"
+	colour: "#BDBDBD"
       });
       Promise.all([
 	open.save(),

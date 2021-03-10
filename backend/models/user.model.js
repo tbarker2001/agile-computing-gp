@@ -34,6 +34,11 @@ const userSchema = new Schema({
     type: Boolean,
     required: true,
     default: false
+  },
+  is_alive: {
+    type: Boolean,
+    required: true,
+    default: true
   }
 }, {
   timestamps: true,

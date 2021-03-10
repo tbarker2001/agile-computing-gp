@@ -36,11 +36,11 @@ export default class ViewTask extends Component {
     axios.get('http://localhost:5000/tasks/'+this.props.match.params.id)
       .then(response => {
         this.setState({
-          creator_username: response.data.creator_username,
+          creator_username: response.data.creator_user.username,
           assigned_users: response.data.assigned_users,
           title: response.data.title,
           description: response.data.description,
-          state: response.data.state,
+          state: response.data.state.text,
           date: new Date(response.data.date),
           labels: response.data.nlp_labels
         })   
@@ -169,7 +169,6 @@ export default class ViewTask extends Component {
               <label>Currently assigned users: </label>
                 <table className="table">
                     <tbody>
-                        
                         { this.currentUsersList() }
                     </tbody>
               </table>

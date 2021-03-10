@@ -1,3 +1,5 @@
+import re
+
 import faiss
 import fasttext
 import json
@@ -5,8 +7,38 @@ import numpy as np
 import os
 import sys
 
+import en_core_web_sm  # download via python -m spacy download en_core_web_sm
+import nltk
+import xx_ent_wiki_sm  # download via python -m spacy download xx_ent_wiki_sm
+
+import supervised_model_prediction_methods
+
+nlpmultilang = xx_ent_wiki_sm.load()
+nlpeng = en_core_web_sm.load()
+nltk.download('punkt', quiet=True)
+nltk.download('averaged_perceptron_tagger', quiet=True)
+
+
+def anonymise_text(text):
+    tokenedtextml = nlpmultilang(text)
+    tokenedtexteng = nlpeng(text)
+    entstoremoveml = [ent for ent in tokenedtextml.ents if ent.label_ == 'PER']
+    entstoremoveeng = [ent for ent in tokenedtexteng.ents if ent.label_ == 'PERSON' or ent.label_ == 'NORP']
+    for ent in entstoremoveml:
+        text = text.replace(ent.text, "")
+    for ent in entstoremoveeng:
+        text = text.replace(ent.text, "")
+
+    tokens = nltk.word_tokenize(text)
+    tagged = nltk.pos_tag(tokens)
+    text = ' '.join([word for word, tag in tagged if tag != 'PRP' and tag != 'PRP$'])
+
+    return text
+
+
 modelDir = os.path.dirname(os.path.abspath(__file__))
-supervisedModelFile = os.path.join(modelDir, '../fastText_demo_model/model.fasttextmodel')
+arxiv_model_filename = os.path.join(modelDir, 'supervised_arxiv_filtered.bin')
+stackoverflow_model_filename = os.path.join(modelDir, 'supervised_stackoverflow.bin')
 embeddingsFile = os.path.join(modelDir, 'unsupervised_alldata.bin')
 skillcloudVocabularyFile = os.path.join(modelDir, 'skills_unique.txt')
 skillcloudIndexFile = os.path.join(modelDir, 'skillcloud.index')
@@ -31,11 +63,12 @@ if __name__ == "__main__":
     num_top_labels = input_json['num_top_labels'] if 'num_top_labels' in input_json else 8
     min_probability = input_json['min_probability'] if 'min_probability' in input_json else 0.0
 
-    # Load supervised model from file
-    model = fasttext.load_model(supervisedModelFile)
+    text = re.sub("\\r\\n|\\n", " ", text)
+    text = anonymise_text(text)
 
     # Get predicted labels with probabilities
-    supervised_labels, supervised_label_probs = model.predict(text, k=num_labels, threshold=min_probability)
+    supervised_labels, supervised_label_probs = supervised_model_prediction_methods.predictLabelsFromBothModels(num_labels,min_probability,text,arxiv_model_filename,stackoverflow_model_filename)
+
 
     # Load embeddings
     embeddings = fasttext.load_model(embeddingsFile)
@@ -52,6 +85,9 @@ if __name__ == "__main__":
     textVec = embeddings.get_sentence_vector(text)
     nearestSkillVecs = skillcloudIndex.search(np.array([textVec]), num_labels)
     nearestSkillVecs = [nearestSkillVecs[0][0], nearestSkillVecs[1][0]]
+    
+    STRICTNESS_COEFF = 2.5
+    nearestSkillVecs[0] = np.exp(-STRICTNESS_COEFF * nearestSkillVecs[0])
 
     # Merge two sets of labels
     remaining = num_labels
@@ -75,7 +111,8 @@ if __name__ == "__main__":
                 sup_i += 1
                 continue
             label_set.add(supervised_labels[sup_i][labelPrefixLength:].capitalize())
-            merged_labels_with_probs.append((supervised_labels[sup_i][labelPrefixLength:].capitalize(), supervised_label_probs[sup_i]))
+            merged_labels_with_probs.append(
+                (supervised_labels[sup_i][labelPrefixLength:].capitalize(), supervised_label_probs[sup_i]))
             sup_i += 1
             remaining -= 1
 
@@ -97,5 +134,3 @@ if __name__ == "__main__":
     }
     sys.stdout.write(json.dumps(output))
     sys.stdout.flush()
-
-
