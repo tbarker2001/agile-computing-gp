@@ -7,6 +7,7 @@ import sys
 modelDir = os.path.dirname(os.path.abspath(__file__))
 embeddingsFile = os.path.join(modelDir, 'unsupervised_alldata.bin')
 
+fasttext.FastText.eprint = lambda x: None
 
 """
     Calculates a match score between each pair of the two arrays of label sets.

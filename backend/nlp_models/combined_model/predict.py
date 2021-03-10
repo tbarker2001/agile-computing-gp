@@ -13,6 +13,8 @@ import xx_ent_wiki_sm  # download via python -m spacy download xx_ent_wiki_sm
 
 import supervised_model_prediction_methods
 
+fasttext.FastText.eprint = lambda x: None
+
 nlpmultilang = xx_ent_wiki_sm.load()
 nlpeng = en_core_web_sm.load()
 nltk.download('punkt', quiet=True)
