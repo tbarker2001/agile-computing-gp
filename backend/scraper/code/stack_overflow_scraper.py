@@ -15,7 +15,29 @@ class PostMode(Enum):
 
 
 class StackOverflowProfile:
+    """A class used to represent a users stack overflow profile
+        Attributes
+        ----------
+        _username : str
+            the username of the profile
+        _top_tags : str generator
+            a generator which can be used to obtain the tags most commonly associated with the profile
+        _answered_posts : StackOverflowPost generator
+            a generator which can be used to obtain the most popular answered posts associated with the profile
+        _asked_posts : StackOverflowPost generator
+            a generator which can be used to obtain the most popular asked posts associated with the profile
+    """
+
     def __init__(self, url):
+        """
+        takes the stack overflow profile url and scrapes data
+
+        Parameters
+        ----------
+        url: str
+        The url of the stack overflow profile
+        """
+
         self._username = url[url.rfind("/") + 1:]
 
         top_tag_url = url + "?tab=tags"
@@ -40,6 +62,13 @@ class StackOverflowProfile:
         return self._asked_posts
 
     def get_free_text(self, parameters=None):
+        """Builds the freetext associated with the stack overflow profile
+
+        Parameters
+        ----------
+        parameters : dictionary
+        Options for what free text is wanted
+        """
         if parameters is None:
             parameters = {"answered_posts": 25, "asked_posts": 25, "top_tags": 0}
         free_text = ""
@@ -66,9 +95,31 @@ class StackOverflowProfile:
 
 
 class StackOverflowPost:
+    """A class used to represent a stack overflow post
+        Attributes
+        ----------
+
+        _post_tags : set
+            a set the string tags associated with the post
+        _title : str
+            the posts title
+        _post : str
+            the posts freetext
+        _answers : str list
+            the posts answers
+    """
 
     def __init__(self, url, session=None):
+        """
+        takes the stack overflow post url and scrapes data
 
+        Parameters
+        ----------
+        url: str
+        The url of the stack overflow post
+        session: request.Session
+        The requests session to be used
+        """
         html = get_html(url, session)
         soup = BeautifulSoup(html, "lxml")
 
@@ -94,16 +145,23 @@ class StackOverflowPost:
         return self._answers
 
     def get_free_text(self, training=False):
+        """Builds the freetext associated with the stack overflow post
+
+        Parameters
+        ----------
+        training : bool
+        Used to indicate if we are obtaining training data(if so we include labels)
+        """
         if training:
             labels_prefix = "__label__ " + " __label__ ".join(self._post_tags)
             free_text = "{labels} {title} {post} {answers}".format(labels=labels_prefix, title=self._title,
                                                                    post=self._post,
                                                                    answers=" ".join(self._answers))
+            free_text = anonymise_text(free_text)
         else:
             free_text = "{title} {post} {answers}".format(title=self._title,
                                                           post=self._post,
                                                           answers=" ".join(self._answers))
-        free_text = anonymise_text(free_text)
         return free_text
 
     def __str__(self):
@@ -111,6 +169,16 @@ class StackOverflowPost:
 
 
 def get_stack_overflow_posts(url, mode):
+    """A generator for stack overflow posts
+
+    Parameters
+        ----------
+        url : string
+        The url of the base page which posts can be scraped from
+        mode: PostMode
+        Indicates what type of post we are scraping
+    """
+
     requests_session = requests.session()
     while True:
         r = requests_session.get(url)
@@ -123,7 +191,7 @@ def get_stack_overflow_posts(url, mode):
         elif mode == PostMode.ANSWER:
             links_html = soup.find(id="user-tab-answers").find_all(class_="answer-hyperlink")
         else:
-            return
+            return None
 
         links = ["https://stackoverflow.com" + question["href"] for question in links_html]
 
@@ -139,6 +207,13 @@ def get_stack_overflow_posts(url, mode):
 
 
 def get_stack_overflow_tags(url):
+    """A generator for stack overflow tags
+
+    Parameters
+        ----------
+        url : string
+        The url of the base page which tags can be drawn from
+    """
     requests_session = requests.session()
     while True:
         html = requests_session.get(url).text
@@ -156,6 +231,7 @@ def get_stack_overflow_tags(url):
 
 
 def main():
+    """ Used for data collection"""
     filepath = 'stackoverflowdata2.txt'
     start_time = time.time()
     write_posts_to_file(10000, filepath)
@@ -166,6 +242,12 @@ def main():
 def write_posts_to_file(n, filepath):
     """
     Writes the most popular n posts to a file
+    Parameters
+        ----------
+        n: int
+        The number of posts to write
+        filepath: str
+        The filepath of the file you want to write the posts to.
     """
     post_url = "https://stackoverflow.com/questions?tab=Votes"
     posts = get_stack_overflow_posts(post_url, PostMode.GENERAL)
