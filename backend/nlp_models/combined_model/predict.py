@@ -11,6 +11,8 @@ import en_core_web_sm  # download via python -m spacy download en_core_web_sm
 import nltk
 import xx_ent_wiki_sm  # download via python -m spacy download xx_ent_wiki_sm
 
+import supervised_model_prediction_methods
+
 nlpmultilang = xx_ent_wiki_sm.load()
 nlpeng = en_core_web_sm.load()
 nltk.download('punkt', quiet=True)
@@ -35,7 +37,8 @@ def anonymise_text(text):
 
 
 modelDir = os.path.dirname(os.path.abspath(__file__))
-supervisedModelFile = os.path.join(modelDir, 'supervised_stackoverflow.bin')
+arxiv_model_filename = os.path.join(modelDir, 'supervised_arxiv_filtered.bin')
+stackoverflow_model_filename = os.path.join(modelDir, 'supervised_stackoverflow.bin')
 embeddingsFile = os.path.join(modelDir, 'unsupervised_alldata.bin')
 skillcloudVocabularyFile = os.path.join(modelDir, 'skills_unique.txt')
 skillcloudIndexFile = os.path.join(modelDir, 'skillcloud.index')
@@ -63,11 +66,9 @@ if __name__ == "__main__":
     text = re.sub("\\r\\n|\\n", " ", text)
     text = anonymise_text(text)
 
-    # Load supervised model from file
-    model = fasttext.load_model(supervisedModelFile)
-
     # Get predicted labels with probabilities
-    supervised_labels, supervised_label_probs = model.predict(text, k=num_labels, threshold=min_probability)
+    supervised_labels, supervised_label_probs = supervised_model_prediction_methods.predictLabelsFromBothModels(num_labels,min_probability,text,arxiv_model_filename,stackoverflow_model_filename)
+
 
     # Load embeddings
     embeddings = fasttext.load_model(embeddingsFile)
@@ -84,6 +85,9 @@ if __name__ == "__main__":
     textVec = embeddings.get_sentence_vector(text)
     nearestSkillVecs = skillcloudIndex.search(np.array([textVec]), num_labels)
     nearestSkillVecs = [nearestSkillVecs[0][0], nearestSkillVecs[1][0]]
+    
+    STRICTNESS_COEFF = 2.5
+    nearestSkillVecs[0] = np.exp(-STRICTNESS_COEFF * nearestSkillVecs[0])
 
     # Merge two sets of labels
     remaining = num_labels
