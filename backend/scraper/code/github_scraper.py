@@ -1,25 +1,31 @@
 import re
-from urllib.request import urlopen
-
 import requests
 from bs4 import BeautifulSoup
 
-from parsing_methods import cleanLines, tokenize_title, generator_pop
+from scraper_methods import cleanLines, tokenize_title, generator_pop, get_html, anonymise_text
 
 
 class GithubIssue:
 
     def __init__(self, url, session=None):
-        if session is None:
-            html = urlopen(url).read().decode("utf-8")
-        else:
-            html = session.get(url).text
+        """
+        takes the github issue url and scrapes data
+
+        Parameters
+        ----------
+        url: str
+        The url of the github issue
+        session: request.Session
+        The requests session to be used
+        """
+        html = get_html(url, session)
         soup = BeautifulSoup(html, "html.parser")
 
         title_text = soup.find(class_="js-issue-title").text
         self._title = re.sub("  +|\\n|\\r|…", "", title_text)
 
         self._post = cleanLines(soup.find(class_="edit-comment-hide").findAll("p"))
+        self._post = re.sub("  +|\\n|\\r|…", "", self._post)
 
     def __str__(self):
         return self._title
@@ -27,12 +33,22 @@ class GithubIssue:
     def get_post(self):
         return self._post
 
-    def get_free_text(self):
+    def get_free_text(self, training=False):
+        """Builds the freetext associated with the github issue
+
+        Parameters
+        ----------
+        training : bool
+        Used to indicate if we are obtaining training data(if so we include labels)
+        """
         title_tokens = [tag[0] for tag in tokenize_title(self._title)]
 
         labels_prefix = "__label__ " + " __label__ ".join(title_tokens)
-
-        freetext = "{labels} {post}\n".format(labels=labels_prefix, post=self._post)
+        if training:
+            freetext = "{labels} {post}\n".format(labels=labels_prefix, post=self._post)
+            freetext = anonymise_text(freetext).replace("_", " ")
+        else:
+            freetext = "{title} {post}\n".format(title=self._title, post=self._post)
 
         return freetext
 
@@ -41,10 +57,17 @@ class GithubCommit:
     "Takes commit, tokenize title into tags, save description,  then store code as freetext"
 
     def __init__(self, url, session=None):
-        if session is None:
-            html = urlopen(url).read().decode("utf-8")
-        else:
-            html = session.get(url).text
+        """
+        takes the github commit url and scrapes data
+
+        Parameters
+        ----------
+        url: str
+        The url of the github commit
+        session: request.Session
+        The requests session to be used
+        """
+        html = get_html(url, session)
         soup = BeautifulSoup(html, "lxml")
 
         main_title = soup.find("p", class_="commit-title")
@@ -68,10 +91,39 @@ class GithubCommit:
     def get_code(self):
         return self._code
 
-    def get_free_text(self):
-        title_tokens = [tag[0] for tag in tokenize_title(self._title)]
-        labels_prefix = "__label__ " + " __label__ ".join(title_tokens)
-        free_text = "{labels_prefix} {code}\n".format(labels_prefix=labels_prefix, code=" ".join(self._code_lines))
+    def get_code_lines(self):
+        return self._code_lines
+
+    def get_code_tags(self):
+        """ Gets the imports from python code which is in _code"""
+        tags = set()
+        for line in self._code.splitlines():
+            simple_import = re.match("import (.*)", line)
+            from_import = re.match("from (.*) import (.*)", line)
+
+            if simple_import is not None:
+                tags.update(simple_import.group(1).split(","))
+            elif from_import is not None:
+                tags.add(from_import.group(1))
+                tags.update(from_import.group(2).split(","))
+        return tags
+
+    def get_free_text(self, training=False):
+        """Builds the freetext associated with the github commit
+
+        Parameters
+        ----------
+        training : bool
+        Used to indicate if we are obtaining training data(if so we include labels)
+        """
+        if training:
+            title_tokens = {tag[0] for tag in tokenize_title(self._title)}
+            title_tokens.update(self.get_code_tags())
+            labels_prefix = "__label__ " + " __label__ ".join(title_tokens)
+            free_text = "{labels_prefix} {code}\n".format(labels_prefix=labels_prefix, code=" ".join(self._code_lines))
+            free_text = anonymise_text(free_text).replace("_", " ")
+        else:
+            free_text = "{title} {code}\n".format(title=self._title, code=" ".join(self._code_lines))
 
         return free_text
 
@@ -79,10 +131,15 @@ class GithubCommit:
 class GithubProfile:
 
     def __init__(self, url, session=None):
-        if session is None:
-            html = urlopen(url).read().decode("utf-8")
-        else:
-            html = session.get(url).text
+        """
+        takes the github profile url and scrapes data
+
+        Parameters
+        ----------
+        url: str
+        The url of the github profile
+        """
+        html = get_html(url, session)
         soup = BeautifulSoup(html, "lxml")
 
         self._username = soup.find(class_="vcard-username").text
@@ -101,6 +158,13 @@ class GithubProfile:
         return self._issues
 
     def get_free_text(self, parameters=None):
+        """Builds the freetext associated with the github profile
+
+        Parameters
+        ----------
+        parameters : dictionary
+        Options for what free text is wanted
+        """
         if parameters is None:
             parameters = {"commits": 25, "issues": 25}
         free_text = ""
@@ -118,10 +182,18 @@ class GithubProfile:
                     if item is not None:
                         free_text += item.get_free_text()
 
+        free_text = anonymise_text(free_text).replace("_", " ")
         return free_text
 
 
 def get_github_commits(username):
+    """A generator for github commits
+
+    Parameters
+        ----------
+        username : string
+        The username of the person you want commits from.
+    """
     url = "https://github.com/search?q=author%3A{username}&type=Commits".format(username=username)
     requests_session = requests.session()
     while True:
@@ -142,6 +214,13 @@ def get_github_commits(username):
 
 
 def get_github_issues(username):
+    """A generator for github issues
+
+    Parameters
+        ----------
+        username : string
+        The username of the person you want issues from.
+    """
     url = "https://github.com/search?q=is%3Aissue+user%3A{username}".format(username=username)
     requests_session = requests.session()
     while True:
@@ -162,15 +241,12 @@ def get_github_issues(username):
 
 
 def main():
-    # GithubIssue("https://github.com/google/blockly/issues/4617")
-    # GithubCommit("https://github.com/tbarker2001/agile-computing-gp/commit/fdce435a01e341f3bc93ea7f3b0e7275ea50adbd")
-    profile = GithubProfile("https://github.com/tbarker2001")#
-    print(profile.get_free_text())
-    commits = profile._issues
+    profile = GithubProfile("https://github.com/tbarker2001")
+    commits = profile.get_commits()
     i = 0
     item = generator_pop(commits)
-    while (item != None):
-        print(item)
+    while item is not None:
+        print(item.get_code_tags())
         item = generator_pop(commits)
         i += 1
     print(i)

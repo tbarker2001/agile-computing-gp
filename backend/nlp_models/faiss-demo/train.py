@@ -3,9 +3,9 @@ import fasttext
 import numpy as np
 import os
 
-modelDir = os.path.dirname(os.path.abspath(__file__))
-embeddingsFile = os.path.join(modelDir, '../fastText_demo_model/arxiv.fasttextvecs')
-skillcloudVocabularyFile = os.path.join(modelDir, '../fastText_demo_model/arxiv-skillcloud.txt')
+modelDir = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../combined_model/')
+embeddingsFile = os.path.join(modelDir, 'unsupervised_alldata.bin')
+skillcloudVocabularyFile = os.path.join(modelDir, 'skills_unique.txt')
 indexOutputFile = os.path.join(modelDir, 'skillcloud.index')
 
 if __name__ == "__main__":
@@ -19,11 +19,11 @@ if __name__ == "__main__":
         skillcloud = f.read().splitlines()
 
     # Load skill vectors from fastText model
-    skillvecs = np.array([model.get_word_vector(skill) for skill in skillcloud])
+    skillvecs = np.array([model.get_word_vector(skill.lower()) for skill in skillcloud])
     print(skillvecs.shape)
 
-    # Specify index type TODO experiment with different types
-    index = faiss.index_factory(model.get_dimension(), "L2norm,HNSW32")
+    # Specify index type
+    index = faiss.index_factory(model.get_dimension(), "L2norm,HNSW64", faiss.METRIC_INNER_PRODUCT)
 
     # Train the index
     if not index.is_trained:
@@ -38,10 +38,14 @@ if __name__ == "__main__":
 
     k = 2 # Want to see 2 nearest neighbours
     branchvec = model.get_word_vector("branch")
-    D, I = index.search(np.array([branchvec]), k)
+    pythonVec = model.get_word_vector("python")
+    D, I = index.search(np.array([branchvec, pythonVec]), k)
 
-    print("Top 2 nearest neighbours")
+    print(I)
+    print("Top 2 nearest neighbours for \"branch\"")
     print([skillcloud[i] for i in I[0]])
+    print("Top 2 nearest neighbours for \"python\"")
+    print([skillcloud[i] for i in I[1]])
     print("Distance metrics:")
     print(D)
 

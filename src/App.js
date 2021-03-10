@@ -8,6 +8,7 @@ import ViewTask from "./components/view-task.component";
 import EditTask from "./components/edit-task.component";
 import CreateTask from "./components/create-task.component";
 import CreateUser from "./components/create-user.component";
+import ProfileView from "./components/profile-view.component";
 import SignIn from "./components/sign-in.component";
 import SignUpComplete from "./components/sign-up-complete.component";
 import SignInComplete from "./components/sign-in-complete.component";
@@ -22,6 +23,7 @@ function App() {
       <Route path="/" exact component={TasksList} />
       <Route path="/view/:id" component={ViewTask} />
       <Route path="/edit/:id" component={EditTask} />
+      <Route path="/profile/:id" component={ProfileView} />
       <Route path="/create" component={CreateTask} />
       <Route path="/signin" component={SignIn} />
       <Route path="/signup" component={CreateUser} />
