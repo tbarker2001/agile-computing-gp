@@ -39,6 +39,7 @@ const OpenTask = props => (                 //    OpenTask is the same, but with
     <td>{props.task.creator_user.username}</td>
     <td>{props.task.title}</td>
     <td>{props.task.description}</td>
+
     <td>{props.score == undefined ? <ClockLoader /> : props.score.score.toFixed(4)}</td>
     <td>{props.task.deadline == undefined ? null : props.task.deadline.substring(0,10)}</td>
     <td>{props.task.assigned_users.length}</td>
@@ -94,6 +95,7 @@ export default class TasksList extends Component {
       .then(this.getOtherOpenTaskList.bind(this))
       .then(this.getClosedTaskList.bind(this))
       .then(this.getCreatedTaskList.bind(this))
+
       .then(this.loadTaskScores.bind(this))
       .then(this.getOtherOpenTaskList.bind(this))
       .catch((error) => {
@@ -153,6 +155,7 @@ export default class TasksList extends Component {
       labelled_tasks: this.labelled_open_tasks()                   //   run topTasksForUser to run calculateMatchScores on this user, and all tasks
     };                                                         
   
+
     return axios.post('http://localhost:5000/nlptest/topTasksForUser', request)
     .then(response => {
       this.setState({
@@ -171,6 +174,7 @@ export default class TasksList extends Component {
     .then(response => {
       window.location = '/';
     })
+
   }
 
   unassignTask(username, task){
@@ -201,6 +205,33 @@ export default class TasksList extends Component {
     // TODO: work out how to sort
   }
 
+  unassignTask(username, task){
+    //post to API to assign user
+    const request = {                                            //   map all_tasks to taskswithscores 
+      username: username,                     //   need scores for each task
+      task_id: task._id                  //   run topTasksForUser to run calculateMatchScores on this user, and all tasks
+    };    
+    axios.post('http://localhost:5000/tasks/unassignUser', request)
+    .then(response => {
+      window.location = '/';
+    })
+  }
+
+  getOtherOpenTaskList() {     
+    this.loadTaskScores();                      //   want to return a list of OpenTask objects                            
+    this.setState({
+      open_tasks: this.state.all_tasks
+		    .filter(id =>
+          ! (id.props.task.state.text === "CLOSED")
+          && ! (id.props.task.creator_user.username === this.state.username)
+          && ! this.isUserAssigned(id.props.task))
+		    .map(id => 
+          <OpenTask task={id.props.task} score={this.state.scores[id.props.task._id]}
+					assignSelfTask={(t) => this.assignTask(this.state.username, t)} key={id.props.task._id}/>)
+    });
+    return;
+    // TODO: work out how to sort
+  }
 
   getClosedTaskList() {                                              
     this.setState({
@@ -220,6 +251,7 @@ export default class TasksList extends Component {
   // Returns {task_id: [{"label": (String), "probability": (Real)}]}
   labelled_open_tasks() {
     let labelled_open_tasks = {};
+
     this.state.open_tasks.forEach(id => labelled_open_tasks[id.props.task._id] = id.props.task.nlp_labels);
     return labelled_open_tasks;
   }
@@ -244,6 +276,7 @@ export default class TasksList extends Component {
     return (
       <div>
       <div > 
+
       <div style = {{float:'left'}}>
       <h3>  <Editabletitle
       text={this.state.projectname+" "}
@@ -265,6 +298,7 @@ export default class TasksList extends Component {
       />
     </Editabletitle></h3>
     </div>
+
     <div style = {{flex: 1, fontSize: 40}}>
       <span className="glyphicon">&#x270f;</span>
     </div>
@@ -363,4 +397,5 @@ export default class TasksList extends Component {
       </div>
     )
   }     // want to return obj of type {taskid: [{label: 'git', probability: 0.4}]}
+
 }
