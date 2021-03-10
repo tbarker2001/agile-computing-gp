@@ -61,61 +61,68 @@ router.route('/signup').post((req, routeres) => {
   const links = req.body.links;
   const nlp_labels = [];
 
-  // todo: check if username exists, password meets min requirements, email validity
+  // in public implementation, would check password meets min requirements, email validity
 
-  let generatePassword = new Promise((resolve, reject) => {
+  User.exists({"username": req.params.username}, function (err, found){ 
+    if(found){
+      return routeres.status(400).json('Error: user exists already')
+    }
+    else{
+      let generatePassword = new Promise((resolve, reject) => {
 
-    console.log("About to generate salt");
-
-    bcrypt.genSalt(10, function (err, res) {
-      const salt = res;
-
-      console.log("About to generate hash");
-
-      bcrypt.hash(password, salt, function (err, res) {
-        const password = res;
-        resolve(password);
-      });
-    });
-  });
-
-  // In the meantime, scrape the user's profile and extract labels
-  let extractLabelsFromProfiles =   /// TODO: scrape free-text as well as links? 
-    processProfile({
-      username: username,
-      links: links,
-      freeText: free_text
-    }).then(result => result.model_output);
-
-  Promise.all([generatePassword, extractLabelsFromProfiles])
-    .then(results => {
-      const password = results[0];
-      const nlp_labels = results[1];
-
-      const newUser = new User({
-        username: username,
-        password: password,
-        email: email,
-        assigned_tasks: assigned_tasks,
-        links: links,
-        free_text: free_text,
-        nlp_labels: nlp_labels,
-        is_admin: false,
-        is_alive: true
+        console.log("About to generate salt");
+    
+        bcrypt.genSalt(10, function (err, res) {
+          const salt = res;
+    
+          console.log("About to generate hash");
+    
+          bcrypt.hash(password, salt, function (err, res) {
+            const password = res;
+            resolve(password);
+          });
+        });
       });
     
-      console.log("About to save user to dbs");
-
-      return newUser.save();
-    })
-    .then(() => {
-      console.log("Saved!");
-      routeres.json('User added!');
-    })
-    .catch(err => {
-      console.log('Error: ' + err);
-      routeres.status(400).json('Error: ' + err)
-    });
+      // In the meantime, scrape the user's profile and extract labels
+      let extractLabelsFromProfiles =   /// TODO: scrape free-text as well as links? 
+        processProfile({
+          username: username,
+          links: links,
+          freeText: free_text
+        }).then(result => result.model_output);
+    
+      Promise.all([generatePassword, extractLabelsFromProfiles])
+        .then(results => {
+          const password = results[0];
+          const nlp_labels = results[1];
+    
+          const newUser = new User({
+            username: username,
+            password: password,
+            email: email,
+            assigned_tasks: assigned_tasks,
+            links: links,
+            free_text: free_text,
+            nlp_labels: nlp_labels,
+            is_admin: false,
+            is_alive: true
+          });
+        
+          console.log("About to save user to dbs");
+    
+          return newUser.save();
+        })
+        .then(() => {
+          console.log("Saved!");
+          routeres.json('User added!');
+        })
+        .catch(err => {
+          console.log('Error: ' + err);
+          routeres.status(400).json('Error: ' + err)
+        });
+    }
+  }); 
 });
 
 router.route('/update/:id').post((req, res) => {
