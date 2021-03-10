@@ -35,7 +35,7 @@ def anonymise_text(text):
 
 
 modelDir = os.path.dirname(os.path.abspath(__file__))
-supervisedModelFile = os.path.join(modelDir, '../fastText_demo_model/model.fasttextmodel')
+supervisedModelFile = os.path.join(modelDir, 'supervised_stackoverflow.bin')
 embeddingsFile = os.path.join(modelDir, 'unsupervised_alldata.bin')
 skillcloudVocabularyFile = os.path.join(modelDir, 'skills_unique.txt')
 skillcloudIndexFile = os.path.join(modelDir, 'skillcloud.index')
