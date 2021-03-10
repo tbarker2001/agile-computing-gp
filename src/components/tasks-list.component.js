@@ -205,33 +205,7 @@ export default class TasksList extends Component {
     // TODO: work out how to sort
   }
 
-  unassignTask(username, task){
-    //post to API to assign user
-    const request = {                                            //   map all_tasks to taskswithscores 
-      username: username,                     //   need scores for each task
-      task_id: task._id                  //   run topTasksForUser to run calculateMatchScores on this user, and all tasks
-    };    
-    axios.post('http://localhost:5000/tasks/unassignUser', request)
-    .then(response => {
-      window.location = '/';
-    })
-  }
-
-  getOtherOpenTaskList() {     
-    this.loadTaskScores();                      //   want to return a list of OpenTask objects                            
-    this.setState({
-      open_tasks: this.state.all_tasks
-		    .filter(id =>
-          ! (id.props.task.state.text === "CLOSED")
-          && ! (id.props.task.creator_user.username === this.state.username)
-          && ! this.isUserAssigned(id.props.task))
-		    .map(id => 
-          <OpenTask task={id.props.task} score={this.state.scores[id.props.task._id]}
-					assignSelfTask={(t) => this.assignTask(this.state.username, t)} key={id.props.task._id}/>)
-    });
-    return;
-    // TODO: work out how to sort
-  }
+  
 
   getClosedTaskList() {                                              
     this.setState({
