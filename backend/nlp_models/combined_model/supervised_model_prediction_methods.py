@@ -21,8 +21,8 @@ def predictLabelsFromBothModels(num_labels,min_probability,text,arxiv_model_file
         if(labels_so[i]  in labels):
             probs[labels.index(labels_so[i])] = math.sin(probs[labels.index(labels_so[i])]*probs[i]*math.pi/2)
         else:
-            labels += labels_so[i]
-            probs += probs_so[i] * 0.75
+            labels.append(labels_so[i])
+            probs.append( probs_so[i] * 0.75)
 
     return labels,probs
     
