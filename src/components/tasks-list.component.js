@@ -366,7 +366,7 @@ export default class TasksList extends Component {
 
 
             </div>
-        : <div> <br></br> <h5>Please log in above to view your tasks.</h5> </div>}
+        : <div> <br></br> <h5>Please log in or sign up above to start.</h5> </div>}
       </article>
       </div>
     )
