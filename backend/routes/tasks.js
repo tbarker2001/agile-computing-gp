@@ -16,7 +16,6 @@ router.route('/').get((req, res) => {
 	)
 	.then(users => {
 	  task.assigned_users = users;
-	  console.log(task.state);
 	  return State.findById(task.state).then(state => {
 	    task.state = state;
 	    return task;

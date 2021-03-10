@@ -45,7 +45,6 @@ router.post('/topTasksForUser', (req, res, next) => {
 
   Promise.all([getTasks, getUsers])
     .then(([tasks, users]) => calculateMatchScores(tasks, users))
-    .then(result => {console.log("r:", result); return result;})
     .then(result => res.send(result.account_set[username]))
     .catch(err => {
       console.error(err)
