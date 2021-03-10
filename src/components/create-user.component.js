@@ -1,5 +1,6 @@
 import React, {Component} from 'react';
 import axios from 'axios';
+import ClockLoader from 'react-spinners/ClockLoader';
 
 //let linkSchema = require('./link.schema');
 
@@ -25,6 +26,7 @@ export default class CreateUser extends Component {
             stackOverflowProfileLink: '',
             free_text: '',
             githubProfileLink: '',
+            waiting: false
             //nlp_labels: ''
         }
     }
@@ -99,6 +101,9 @@ export default class CreateUser extends Component {
     onSubmit(e) {
         e.preventDefault();
 
+        this.setState({
+            waiting: true
+        });
         const user = {
             username: this.state.username,
             password: this.state.password,
@@ -117,10 +122,12 @@ export default class CreateUser extends Component {
                 console.log(response.data);
                 window.location = '/signupcomplete';
             })
-	    .catch(console.error);
-	    
-        //todo: check if success
-
+        .catch(err => {
+            this.setState({
+                waiting: false
+            });
+            console.error(err);
+        });
     }
 
     render() {
@@ -172,7 +179,9 @@ export default class CreateUser extends Component {
                                     />
                             </div>
                             <div className="form-group">
-                                <input type="submit" value="Create User" className="btn btn-primary"/>
+                                {this.state.waiting
+                                ? <ClockLoader />
+                                : <input type="submit" value="Create User" className="btn btn-primary"/>}
                             </div>
                         </form>
                     </div>
