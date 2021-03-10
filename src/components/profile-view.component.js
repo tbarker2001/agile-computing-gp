@@ -11,7 +11,7 @@ import "../App.css";
 const Label = props => (
   <tr>
     <td>{props.label}</td>
-    <td>{props.probability}</td>
+    <td>{props.probability.toFixed(4)}</td>
   </tr>
 )
 

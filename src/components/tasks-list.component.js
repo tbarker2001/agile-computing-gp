@@ -265,7 +265,7 @@ export default class TasksList extends Component {
       />
     </Editabletitle></h3>
     </div>
-    <div style = {{float:'left'}}>
+    <div style = {{flex: 1, fontSize: 40}}>
       <span className="glyphicon">&#x270f;</span>
     </div>
     <div style = {{float:'left'}}>

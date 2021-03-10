@@ -16,7 +16,7 @@ import "../App.css";
 const Label = props => (
   <tr>
     <td>{props.label}</td>
-    <td>{props.probability.toFixed(4)}</td>
+    <td>{props.probability == undefined ? null : props.probability.toFixed(4)}</td>
     <td>
       <a href="#" onClick={() => props.onManualDelete(props.label)}>X</a>       
     </td>
