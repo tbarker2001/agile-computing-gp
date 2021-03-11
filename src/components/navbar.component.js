@@ -14,7 +14,6 @@ export default class Navbar extends Component {
         <Link to="/" className="navbar-brand">
           <img src="/favicon.png" width="32" height="32" className="d-inline-block align-top navbar-icon" alt=""/>
           <img src="/logo.png" width="103" height="32" className="d-inline-block align-top navbar-logo" alt=""/>
-          Task Manager
           </Link>
         <div className="collpase navbar-collapse">
         <ul className="navbar-nav mr-auto">
