@@ -33,7 +33,7 @@ export default class Navbar extends Component {
                       window.location = '/profile/' + id;
                     }
                   })
-                  .catch((error) => { 
+                  .catch((error) => {
                     console.log(error);
                   })
                 }}>Profile</a>
