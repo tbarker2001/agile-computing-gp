@@ -70,7 +70,7 @@ const RecommendedUserList = props => {
   // TODO display only top N & add search bar to filter by username
   const displayedUsers = React.Children.toArray(
     Object.entries(props.users)
-      .sort((a, b) => a[1].score < b[1].score)
+      .sort((a, b) => (a[1].score < b[1].score) ? 1 : ((a[1].score < b[1].score) ? -1 : 0))
       .map(([username, attr]) =>
 	<User
 	  username={username}
@@ -257,7 +257,7 @@ export default class CreateTask extends React.Component {
       text: this.state.description
     };
     axios.post('http://localhost:5000/nlptest/processTask', taskInfo)
-      .then(response => this.setState({
+      .then(response => {console.log(response.data.top_labels); this.setState({
         model_output: response.data.model_output,
         top_labels: [
           ...response.data.top_labels
@@ -266,7 +266,7 @@ export default class CreateTask extends React.Component {
         ],
         labels_is_loading: false,
         labels_is_outdated: false
-      }))
+      })})
       .catch(err => {
         console.error(err);
         this.setState({
