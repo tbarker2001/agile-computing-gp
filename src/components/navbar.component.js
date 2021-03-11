@@ -13,6 +13,7 @@ export default class Navbar extends Component {
       <nav className="navbar navbar-light bg-white navbar-expand-lg">
         <Link to="/" className="navbar-brand">
           <img src="/favicon.png" width="32" height="32" className="d-inline-block align-top navbar-icon" alt=""/>
+          <img src="/logo.png" width="103" height="32" className="d-inline-block align-top navbar-logo" alt=""/>
           Task Manager
           </Link>
         <div className="collpase navbar-collapse">
@@ -32,7 +33,7 @@ export default class Navbar extends Component {
                       window.location = '/profile/' + id;
                     }
                   })
-                  .catch((error) => {
+                  .catch((error) => { 
                     console.log(error);
                   })
                 }}>Profile</a>

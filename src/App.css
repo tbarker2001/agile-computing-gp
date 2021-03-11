@@ -62,6 +62,14 @@ button {
           transition: transform 0.2s ease-in-out;
 }
 
+.navbar-logo {
+  margin-right: 8px;
+  opacity: 0.8;
+  border-radius: 10%;
+  -webkit-transition: -webkit-transform 0.2s ease-in-out;
+          transition: transform 0.2s ease-in-out;
+}
+
 .navbar-brand:hover .navbar-icon {
   -webkit-transform: rotate(7deg);
           transform: rotate(7deg);
