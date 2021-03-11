@@ -88,7 +88,7 @@ if __name__ == "__main__":
     nearestSkillVecs = skillcloudIndex.search(np.array([textVec]), num_labels)
     nearestSkillVecs = [nearestSkillVecs[0][0], nearestSkillVecs[1][0]]
     
-    STRICTNESS_COEFF = 1.1
+    STRICTNESS_COEFF = 1.05
     nearestSkillVecs[0] = np.exp(-STRICTNESS_COEFF * nearestSkillVecs[0])
 
     # Merge two sets of labels
