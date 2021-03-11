@@ -69,8 +69,8 @@ if __name__ == "__main__":
     text = anonymise_text(text)
 
     # Get predicted labels with probabilities
-    supervised_labels, supervised_label_probs = supervised_model_prediction_methods.predictLabelsFromBothModels(num_labels,min_probability,text,arxiv_model_filename,stackoverflow_model_filename)
-
+    supervised_labels, supervised_label_probs = supervised_model_prediction_methods.predictLabelsFromBothModels(
+        num_labels, min_probability, text, arxiv_model_filename, stackoverflow_model_filename)
 
     # Load embeddings
     embeddings = fasttext.load_model(embeddingsFile)
@@ -87,7 +87,7 @@ if __name__ == "__main__":
     textVec = embeddings.get_sentence_vector(text)
     nearestSkillVecs = skillcloudIndex.search(np.array([textVec]), num_labels)
     nearestSkillVecs = [nearestSkillVecs[0][0], nearestSkillVecs[1][0]]
-    
+
     STRICTNESS_COEFF = 1.05
     nearestSkillVecs[0] = np.exp(-STRICTNESS_COEFF * nearestSkillVecs[0])
 
@@ -129,6 +129,9 @@ if __name__ == "__main__":
         )
         for label, prob in merged_labels_with_probs
     ]
+
+    model_output.sort(key=lambda x: x.get("probability"), reverse=True)
+
     output = {
         "model_output": model_output,
         "data_quality_score": 1.0,
