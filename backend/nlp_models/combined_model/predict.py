@@ -88,8 +88,9 @@ if __name__ == "__main__":
     nearestSkillVecs = skillcloudIndex.search(np.array([textVec]), num_labels)
     nearestSkillVecs = [nearestSkillVecs[0][0], nearestSkillVecs[1][0]]
 
-    STRICTNESS_COEFF = 1.05
-    nearestSkillVecs[0] = np.exp(-STRICTNESS_COEFF * nearestSkillVecs[0])
+    # Apply a monotone transformation on the probabilities
+    SPREAD_COEFF = 1.15
+    nearestSkillVecs[0] = np.power(nearestSkillVecs[0], SPREAD_COEFF)
 
     # Merge two sets of labels
     remaining = num_labels
