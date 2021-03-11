@@ -19,14 +19,47 @@ def predictLabelsFromBothModels(num_labels,min_probability,text,arxiv_model_file
 
     for i in range(len(labels_so)):
         if(labels_so[i]  in labels):
-            probs[labels.index(labels_so[i])] = math.sin(probs[labels.index(labels_so[i])]*probs[i]*math.pi/2)
+            p = list(probs)
+            p[labels.index(labels_so[i])] = math.sin(probs[labels.index(labels_so[i])]*probs[i]*math.pi/2)
+            probs = tuple(p)
         else:
-            l = list(labels)
-            l.append(labels_so[i])
-            p = list(probs) 
-            p.append(probs_so[i] * 0.85)
+            l,p = insert_labelprobpair(list(labels),list(probs),labels_so[i],probs_so[i])
             labels = tuple(l)
             probs = tuple(p)
 
     return labels,probs
+
+def insert_labelprobpair(labels,probs,l,p):
+    i = 0
+    l,p = [],[]
+    while(probs[i]>p):
+        
+        l.append(labels[i])
+        p.append(probs[i])
+        i+=1
+    l.append(l)
+    p.append(p)
+    l+=labels[i:]
+    p+=probs[i:]
+    return l,p
     
+
+def merge_labelprobabilitypairs(labels,probs,labels_so,probs_so):
+    l = []
+    p = []
+    num_l = len(labels)
+    num_so = len(labels_so)
+    i,j = 0,0
+    while i<num_l and j<num_so:
+            if(probs[i]<probs_so[j]):
+                l.append(labels_so[j])
+                p.append(probs_so[j])
+                j+=1
+            else:
+                l.append(labels[i])
+                p.append(probs[i])
+                i+=1
+            
+    l += labels_so[j:] + labels[i:]
+    p += probs_so[j:] + probs[i:]
+    return l,p
