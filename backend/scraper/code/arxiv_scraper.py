@@ -39,33 +39,33 @@ def scan_all_arxiv_computer_science_categories2020():
 
     for link in soup.findAll('a', attrs={'href': re.compile("list/cs\.")}):
         l = "https://export.arxiv.org/" + (link.get('href')).replace("recent", "20")
-        print("\n " + l + " Parsed " + str(parsed))
         scan_category(l, parsed, session)
 
 
 def scan_category(url, parsed, session=None):
-    print("hi")
 
     html = scraper_methods.get_html(url, session)
     soup = BeautifulSoup(html, "lxml")
     all_file_pages = (str(soup.find("small"))).split(' ')[3]
 
-    print(all_file_pages)
     if (int(all_file_pages)) > 2000:
         all_file_pages = "2000"
     url += "?skip=0&show=" + all_file_pages
 
     html = scraper_methods.get_html(url, session)
     soup = BeautifulSoup(html, "lxml")
-    print(url)
     c2 = 0
     for link in soup.findAll('a', attrs={'href': re.compile("/abs/")}):
-        if parsed % 200 == 0:
-            time.sleep(60)
-        print(str(c2) + ', ', end='')
-        parse_paper("https://export.arxiv.org/" + link.get('href'), session)
-        c2 += 1
-        parsed += 1
+            if c2 > int(allfilespage):
+                break
+            time.sleep(0.3)
+            print(str(c2)+', ', end = '')
+            try:
+                parsePaper("https://export.arxiv.org/"+link.get('href'),session)
+            except urllib.error.HTTPError:
+                print("removed")
+            c2+=1
+            parsed+=1
 
 
 def parse_paper(url, session=None):
@@ -83,6 +83,7 @@ def parse_paper(url, session=None):
     # fetch the tags(subjects) for the paper
     subjects = str(soup.find('td', {'class': 'tablecell subjects'}).get_text())
     subjects = subjects.replace("\n", "")
+    subjects = subjects.replace(" ", "")
     subjects = (re.sub(r'\([^)]*\)', '', subjects)).split(';')
 
     # collect the abstract
